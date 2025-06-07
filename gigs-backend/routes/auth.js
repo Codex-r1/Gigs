@@ -29,19 +29,53 @@ router.post('/register', async (req, res) => {
 });
 
 // Login Route
-router.post('/login', (req, res) => {
+// routes/auth.js (or directly in server.js)
+router.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    const sql = 'SELECT * FROM Users WHERE email = ?';
 
-    db.query(sql, [email], async (err, results) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
+    if (!email || !password) {
+        return res.status(400).send('Please provide email and password.');
+    }
 
-        const user = results[0];
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({ error: 'Invalid credentials!' });
+    try {
+        const [rows] = await pool.execute('SELECT userId, email, password, role FROM Users WHERE email = ?', [email]);
+        const user = rows[0];
+
+        if (!user) {
+            return res.status(401).send('Invalid credentials.');
         }
 
-    });
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).send('Invalid credentials.');
+        }
+
+        // Authentication successful!
+        // Store essential user info in the session
+        req.session.user = {
+            userId: user.userId,
+            email: user.email,
+            role: user.role
+        };
+
+        // Redirect based on role
+        switch (user.role) {
+            case 'mentor':
+                return res.redirect('/mentor/dashboard');
+            case 'youth':
+                return res.redirect('/youth/home');
+            case 'admin':
+                return res.redirect('/admin/dashboard');
+            default:
+                // Fallback for unexpected roles
+                return res.redirect('/dashboard');
+        }
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).send('An error occurred during login.');
+    }
 });
 
 // Profile Route
@@ -54,4 +88,15 @@ router.get('/profile', (req, res) => {
     });
 });
 
+
+// Logout route
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error('Session destruction error:', err);
+            return res.status(500).send('Could not log out.');
+        }
+        res.redirect('/login'); // Redirect to login page after logout
+    });
+});
 module.exports = router;
