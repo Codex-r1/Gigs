@@ -1,20 +1,12 @@
-const mysql = require('mysql');
-require('dotenv').config();
+// config/database.js
+const mysql = require('mysql2/promise');
 
-const db = mysql.createConnection({
+const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'youthgigs'
+  database: 'youthgigs',
+  waitForConnections: true,
 });
 
-// Connect to the MySQL database
-db.connect((err) => {
-  if (err) {
-    console.error('Database connection failed:', err.message);
-  } else {
-    console.log('MySQL connected...');
-  }
-});
-
-module.exports = db;
+module.exports = pool;

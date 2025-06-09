@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 
 // Layout components
@@ -14,24 +14,36 @@ import Companies from './pages/companies';
 import Register from './pages/register';
 import Jobs from './pages/jobs';
 import Detail from './pages/detail'; 
+import Youth from './pages/youthdash';
+import Admin from './pages/admindash';
 
-function App() {
+function AppLayout() {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
   return (
-    <BrowserRouter>
+    <>
       <Navbar />
-<Header />
+      {isHome && <Header />}
       <Routes>
-<Route path="/header" element={<Header />} />
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/youthdash" element={<Youth />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/detail" element={<Detail />} />
-        {/* Add more routes as needed */}
       </Routes>
-
       <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
     </BrowserRouter>
   );
 }
