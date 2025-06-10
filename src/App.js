@@ -15,7 +15,8 @@ import Register from './pages/register';
 import Jobs from './pages/jobs';
 import Detail from './pages/detail'; 
 import Youth from './pages/youthdash';
-import Admin from './pages/admindash';
+import AdminDash from './pages/admindash';
+import EmployerDash from './pages/employerdash';
 
 function AppLayout() {
   const location = useLocation();
@@ -32,7 +33,8 @@ function AppLayout() {
         <Route path="/register" element={<Register />} />
         <Route path="/youthdash" element={<Youth />} />
         <Route path="/jobs" element={<Jobs />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminDash />} />
+        <Route path="/employerdash" element={<EmployerDash />} />
         <Route path="/detail" element={<Detail />} />
       </Routes>
       <Footer />

@@ -20,7 +20,7 @@ export default function Login() {
       if (res.data.role === 'applicant') {
         navigate('/youthdash');
       } else if (res.data.role === 'employer') {
-        navigate('/mentordash');
+        navigate('/employerdash');
       } else if (res.data.role === 'admin') {
         navigate('/admin');
       } else {

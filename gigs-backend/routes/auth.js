@@ -95,4 +95,15 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
+// GET all jobs
+router.get('/api/jobs', async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT * FROM jobs ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching jobs:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
