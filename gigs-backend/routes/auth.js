@@ -92,7 +92,6 @@ router.get('/profile', async (req, res) => {
 // Logout Route
 router.post('/logout', (req, res) => {
   // If using JWT, there's no session to destroy.
-  // You may blacklist the token if needed.
   res.json({ message: 'Logout successful' });
 });
 
