@@ -38,7 +38,7 @@ export default function Login() {
         <div className="container">
           <div className="col-md-6 col-sm-8 col-md-offset-3 col-sm-offset-2">
             <form onSubmit={handleSubmit}>
-              <img className="img-responsive" alt="logo" src="img/logo.png" />
+              
               <input
                 type="email"
                 name="email"
