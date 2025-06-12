@@ -30,3 +30,25 @@ CREATE TABLE Applications (
   FOREIGN KEY (applicantId) REFERENCES Users(userId) ON DELETE CASCADE
 );
 
+CREATE  TABLE Ratings (
+  ratingId INT AUTO_INCREMENT PRIMARY KEY,
+  employerId INT  NOT NULL,  -- references Users(userId)
+  applicantId INT NOT NULL, -- references Users(userId)
+  score INT  NOT NULL (score IN (1,2,3,4,5)),
+  feedback TEXT,
+  created at CURRENT_TIMESTAMP
+  FOREIGN KEY (employerId) REFERENCES Users(userId) ON DELETE CASCADE,
+  FOREIGN KEY (applicantId) REFERENCES Users(userId) ON DELETE CASCADE
+);
+
+CREATE TABLE Profile (
+  profileId INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  bio TEXT NOT NULL CHECK (LENGTH(TRIM(bio) > 0))
+  skills TEXT NOT NULL CHECK (LENGTH(TRIM(skills) > 0))
+  location VARCHAR(100) NOT NULL,
+  created at CURRENT_TIMESTAMP,
+  FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE
+);
+
+
