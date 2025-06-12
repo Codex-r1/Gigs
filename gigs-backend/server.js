@@ -17,5 +17,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+const applicantRoutes = require('./routes/applicants');
+app.use('/api/applicants', applicantRoutes);
+const employerRoutes = require('./routes/employer');
+app.use('/api/employer', employerRoutes); 
 
 app.listen(5000, () => console.log('Server running on port 5000'));

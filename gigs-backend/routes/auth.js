@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const pool = require('../config/database'); // mysql2/promise pool
+const pool = require('../config/database'); // mysql2
 require('dotenv').config();
 
 // Register Route
@@ -91,7 +91,6 @@ router.get('/profile', async (req, res) => {
 
 // Logout Route
 router.post('/logout', (req, res) => {
-  // If using JWT, there's no session to destroy.
   res.json({ message: 'Logout successful' });
 });
 
@@ -105,5 +104,6 @@ router.get('/api/jobs', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 module.exports = router;

@@ -52,9 +52,6 @@ import React from 'react';
       </form>
     </div>
   </div>
-  <div className="copy-right">
-    <p>©Copyright 2018 Jober Desk | Design By <a href="https://themezhub.com/">ThemezHub</a></p>
-  </div>
 </footer>
   </div>
    );

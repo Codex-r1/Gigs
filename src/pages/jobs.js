@@ -1,98 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from "axios";
 
-function Jobs() {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true); // State to manage loading status
-  const [error, setError] = useState(null);   // State to manage errors
-
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const res = await axios.get('http://localhost:5000/api/jobs');
-        setJobs(res.data);
-      } catch (err) {
-        console.error('Error fetching jobs:', err);
-        setError('Failed to load jobs. Please try again later.'); // Set a user-friendly error message
-        // Optionally, you could set jobs to the informalJobs array as a fallback
-        // setJobs(informalJobs);
-      } finally {
-        setLoading(false); // Set loading to false once fetching is complete (or errors out)
-      }
-    };
-
-    fetchJobs();
-  }, []); // The empty dependency array ensures this runs only once on mount
-
-  // You can also use the hardcoded informalJobs array as a fallback or initial data
-  // For now, let's assume you want to use the fetched data.
-  // const informalJobs = [ /* ... your informalJobs array ... */ ];
-
-  if (loading) {
-    return (
-      <section className="section jobs-section" style={{ backgroundColor: "#f9f9f9", padding: "60px 0" }}>
-        <div className="container text-center">
-          <h2>Loading Jobs...</h2>
-          <p>Please wait while we fetch the latest job listings.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="section jobs-section" style={{ backgroundColor: "#f9f9f9", padding: "60px 0" }}>
-        <div className="container text-center">
-          <h2 className="text-danger">Error</h2>
-          <p>{error}</p>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="section jobs-section" style={{ backgroundColor: "#f9f9f9", padding: "60px 0" }}>
-      <div className="container">
-        <div className="section-title text-center mb-5">
-          <h2>Informal Job Listings</h2>
-          <p>Find local gigs and short-term jobs that match your skills.</p>
-        </div>
-        <div className="row">
-          {jobs.length > 0 ? (
-            jobs.map((job, index) => (
-              <div className="col-md-4 mb-4" key={job._id || index}> {/* Use a unique ID if available, otherwise index */}
-                <div className="card h-100 shadow-sm rounded">
-                  <div className="card-body">
-                    <h5 className="card-title">{job.title}</h5>
-                    <h6 className="text-muted">{job.category}</h6>
-                    <p className="card-text">{job.description}</p>
-                    <p className="text-muted">
-                      <i className="fa fa-map-marker" aria-hidden="true"></i> {job.location}
-                    </p>
-                    <button className="btn btn-primary btn-sm">Apply Now</button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-12 text-center">
-              <p>No jobs found. Check back later!</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default Jobs;
-
-// If you want to use the informalJobs array as a static list instead of fetching:
-/*
 import React from 'react';
 
 const informalJobs = [
-  // ... your informalJobs array ...
+  //  informalJobs array 
   {
     title: "House Cleaning Help",
     category: "Domestic Work",
@@ -246,4 +156,3 @@ function Jobs() {
 }
 
 export default Jobs;
-*/
