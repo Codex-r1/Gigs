@@ -1,111 +1,180 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import "./post.css";
 
 const JobPostForm = () => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    location: '',
-    category: '',
-    status: '',
+    title: "",
+    category: "",
+    job_type: "",
+    experience: "",
+    location: "",
+    specific_location: "",
+    payment_method: "",
+    min_pay: "",
+    max_pay: "",
+    description: "",
+    skills: ""
   });
 
+  // Handle changes in form inputs
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
 
     try {
-      await axios.post('http://localhost:5000/api/employer/jobs', formData, {
+      const token = localStorage.getItem("token"); // Adjust if stored elsewhere
+
+      const response = await fetch("http://localhost:5000/api/jobs", {
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          location: `${formData.location}, ${formData.specific_location}`,
+          category: formData.category
+        })
       });
 
-      alert('Job posted successfully!');
-      setFormData({ title: '', description: '', location: '', category: '', status: '' });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Job posted successfully!");
+        setFormData({ title: "", category: "", job_type: "", experience: "", location: "", specific_location: "", payment_method: "", min_pay: "", max_pay: "", description: "", skills: "" });
+      } else {
+        alert(data.error || "Something went wrong.");
+      }
     } catch (error) {
-      console.error(error);
-      alert('Failed to post job');
+      console.error("Error submitting job:", error);
+      alert("Server error. Try again later.");
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-8 p-8 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Post a New Job</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
-          <input
-            name="title"
-            type="text"
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none"
-            required
-          />
+    <div id="webcrumbs">
+      <div className="w-full max-w-4xl mx-auto p-6 bg-white">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Post a New Gig</h1>
+          <p className="text-gray-600">Fill out the details below to connect with local informal workers.</p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            name="description"
-            rows="4"
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none"
-            required
-          />
-        </div>
+        <form className="space-y-8" onSubmit={handleSubmit}>
+          {/* Example input field connected to state */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="material-symbols-outlined mr-2">work</span>
+              Gig Information
+            </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            <input
-              name="location"
-              type="text"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none"
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Job Title *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. House Cleaning"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Category *</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="">Select Job Category</option>
+                  <option>Delivery</option>
+                  <option>Cleaning</option>
+                  <option>Gardening</option>
+                  <option>Construction</option>
+                  <option>Hair & Beauty</option>
+                  <option>Cooking/Catering</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <input
-              name="category"
-              type="text"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none"
-            />
+          {/* Location */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="material-symbols-outlined mr-2">location_on</span>
+              Location
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">City/Town *</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. Nairobi"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Specific Location</label>
+                <input
+                  type="text"
+                  name="specific_location"
+                  value={formData.specific_location}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. CBD"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">status</label>
-            <input
-              name="status"
-              type="text"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none"
-            />
-          </div>
-        </div>
+          {/* Description */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="material-symbols-outlined mr-2">description</span>
+              Description
+            </h2>
 
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition duration-200"
-          >
-            Post Job
-          </button>
-        </div>
-      </form>
+            <div>
+              <label className="block text-sm font-medium mb-2">Job Description *</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows="5"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
+                placeholder="What does the job involve?"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="flex justify-end pt-6">
+            <button
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
+            >
+              Post Informal Gig
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -17,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+app.use('/api', require('./routes/jobs'));
 const applicantRoutes = require('./routes/applicants');
 app.use('/api/applicants', applicantRoutes);
 const employerRoutes = require('./routes/employer');

@@ -36,7 +36,7 @@ function Navbar() {
             >
               <li><Link to="/">Home</Link></li>
               <li><Link to="/jobs">Find Jobs</Link></li>
-              <li><Link to="/post-job">Post a Job</Link></li>
+              <li><Link to="/register">Post a Job</Link></li>
               <li><Link to="/about">About Us</Link></li>
 
               {!isLoggedIn && (

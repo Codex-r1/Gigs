@@ -1,167 +1,306 @@
-import React from "react"
+import React from "react";
 
-import "./style.css"
+import "./style.css";
 
-export const Youth = () => {
-    return (
-        <div id="webcrumbs">
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-                <div className="container mx-auto max-w-7xl">
-                    <header className="flex justify-end gap-3 mb-8">
-                        <button className="px-4 py-2 border border-gray-300 rounded-md bg-white shadow-sm hover:bg-gray-50 transition duration-200 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">search</span>
-                            Job Searches
-                        </button>
-                        <button className="px-4 py-2 border border-gray-300 rounded-md bg-white shadow-sm hover:bg-gray-50 transition duration-200 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">settings</span>
-                            Profile Settings
-                        </button>
-                    </header>
-
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div className="md:col-span-8 lg:col-span-9">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Applications</h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div className="bg-white rounded-lg shadow-md p-5 border border-gray-100 hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-primary-600">
-                                                business_center
-                                            </span>
-                                        </div>
-                                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                                            Active
-                                        </span>
-                                    </div>
-                                    <h3 className="font-bold text-lg text-gray-800">Tech Innovations</h3>
-                                    <p className="text-sm text-gray-600 mt-1">Software Developer</p>
-                                    <p className="text-xs text-gray-500 mt-1">Status: Interview Scheduled</p>
-                                    <div className="mt-4 pt-3 border-t border-gray-100">
-                                        <button className="text-primary-600 text-sm font-medium hover:text-primary-700 transition duration-200">
-                                            View Details
-                                        </button>
-                                    </div>
-                                    {/* Next: "Add application timeline" */}
-                                </div>
-
-                                <div className="bg-white rounded-lg shadow-md p-5 border border-gray-100 hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-purple-600">palette</span>
-                                        </div>
-                                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                            New
-                                        </span>
-                                    </div>
-                                    <h3 className="font-bold text-lg text-gray-800">Creative Solutions</h3>
-                                    <p className="text-sm text-gray-600 mt-1">Graphic Designer</p>
-                                    <p className="text-xs text-gray-500 mt-1">Status: Portfolio Review</p>
-                                    <div className="mt-4 pt-3 border-t border-gray-100">
-                                        <button className="text-primary-600 text-sm font-medium hover:text-primary-700 transition duration-200">
-                                            View Details
-                                        </button>
-                                    </div>
-                                    {/* Next: "Add application progress bar" */}
-                                </div>
-
-                                <div className="bg-white rounded-lg shadow-md p-5 border border-gray-100 hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-green-600">landscape</span>
-                                        </div>
-                                        <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                            Pending
-                                        </span>
-                                    </div>
-                                    <h3 className="font-bold text-lg text-gray-800">GreenTech</h3>
-                                    <p className="text-sm text-gray-600 mt-1">Environmental Engineer</p>
-                                    <p className="text-xs text-gray-500 mt-1">Status: Evaluation Submitted</p>
-                                    <div className="mt-4 pt-3 border-t border-gray-100">
-                                        <button className="text-primary-600 text-sm font-medium hover:text-primary-700 transition duration-200">
-                                            View Details
-                                        </button>
-                                    </div>
-                                    {/* Next: "Add application deadline countdown" */}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="md:col-span-4 lg:col-span-3">
-                            <div className="bg-white rounded-lg shadow-md p-5 border border-gray-100">
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">Notifications</h3>
-
-                                <div className="space-y-4">
-                                    <div className="p-3 bg-blue-50 rounded-md border-l-4 border-blue-400">
-                                        <p className="text-sm text-gray-700">
-                                            Your application for Software Developer at Tech Innovations has been updated
-                                            to Interview Scheduled.
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-                                    </div>
-
-                                    <div className="p-3 bg-green-50 rounded-md border-l-4 border-green-400">
-                                        <p className="text-sm text-gray-700">
-                                            New job alert: Graphic Designer at Creative Solutions.
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                                    </div>
-
-                                    <div className="p-3 bg-yellow-50 rounded-md border-l-4 border-yellow-400">
-                                        <p className="text-sm text-gray-700">
-                                            Reminder: update your profile to increase visibility.
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">3 days ago</p>
-                                    </div>
-                                </div>
-
-                                <button className="w-full mt-4 text-center text-sm text-primary-600 hover:text-primary-700 transition duration-200">
-                                    View all notifications
-                                </button>
-                                {/* Next: "Add notification preferences section" */}
-                            </div>
-                        </div>
-                    </div>
-
-                    <footer className="mt-12 pt-6 border-t border-gray-200">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                            <div className="md:col-span-6">
-                                <p className="text-gray-600 text-sm">Contact us:</p>
-                                <p className="text-gray-800 font-medium">Phone: +123-456-7890</p>
-                                <p className="text-gray-800 font-medium">Email: support@jobtracker.com</p>
-                                {/* Next: "Add contact form link" */}
-                            </div>
-
-                            <div className="md:col-span-6 flex justify-end">
-                                <p className="text-gray-600 text-sm mr-4">Follow Us:</p>
-                                <div className="flex space-x-3">
-                                    <a
-                                        href=" https://www.facebook.com"
-                                        className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200"
-                                    >
-                                        <i className="fa-brands fa-facebook text-gray-700"></i>
-                                    </a>
-                                    <a
-                                        href=" https://www.twitter.com"
-                                        className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200"
-                                    >
-                                        <i className="fa-brands fa-twitter text-gray-700"></i>
-                                    </a>
-                                    <a
-                                        href=" https://www.linkedin.com"
-                                        className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition duration-200"
-                                    >
-                                        <i className="fa-brands fa-linkedin text-gray-700"></i>
-                                    </a>
-                                </div>
-                                {/* Next: "Add newsletter subscription" */}
-                            </div>
-                        </div>
-                    </footer>
-                </div>
+const Youthdash = () => {
+  return (
+<div id="webcrumbs"> 
+            <div className="w-full max-w-6xl mx-auto p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <div className="text-center">
+              <div className="relative mb-4">
+                <img 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+                  alt="Profile"
+                  keywords="professional, headshot, business"
+                  className="w-24 h-24 rounded-full mx-auto border-4 border-primary-100 shadow-lg"
+                />
+                <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-2 border-white"></div>
+              </div>
+              <h2 className="text-xl font-bold text-slate-800">John Anderson</h2>
+              <p className="text-slate-600 mb-2">Senior Software Engineer</p>
+              <div className="flex items-center justify-center gap-1 text-yellow-500 mb-4">
+                <span className="material-symbols-outlined text-sm">star</span>
+                <span className="material-symbols-outlined text-sm">star</span>
+                <span className="material-symbols-outlined text-sm">star</span>
+                <span className="material-symbols-outlined text-sm">star</span>
+                <span className="material-symbols-outlined text-sm">star_half</span>
+                <span className="text-slate-600 ml-1">4.8</span>
+              </div>
             </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-slate-600">
+                <span className="material-symbols-outlined text-lg">location_on</span>
+                <span>San Francisco, CA</span>
+              </div>
+              <div className="flex items-center gap-3 text-slate-600">
+                <span className="material-symbols-outlined text-lg">email</span>
+                <span>john.anderson@email.com</span>
+              </div>
+              <div className="flex items-center gap-3 text-slate-600">
+                <span className="material-symbols-outlined text-lg">phone</span>
+                <span>+1 (555) 123-4567</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <h3 className="font-semibold text-slate-800 mb-3">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">React</span>
+                <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">Node.js</span>
+                <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">Python</span>
+                <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">AWS</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+            <h3 className="font-semibold text-slate-800 mb-4">Quick Stats</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Applications</span>
+                <span className="font-semibold text-slate-800">12</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Interviews</span>
+                <span className="font-semibold text-slate-800">5</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Bookmarks</span>
+                <span className="font-semibold text-slate-800">8</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Profile Views</span>
+                <span className="font-semibold text-slate-800">127</span>
+              </div>
+            </div>
+          </div>
         </div>
-    )
+        
+        <div className="lg:col-span-3 space-y-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex flex-wrap gap-4">
+                <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">
+                  <span className="material-symbols-outlined">work</span>
+                  Applications
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+                  <span className="material-symbols-outlined">bookmark</span>
+                  Bookmarks
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
+                  <span className="material-symbols-outlined">settings</span>
+                  Settings
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">My Applications</h2>
+                <div className="flex gap-2">
+                  <button className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                    <span className="material-symbols-outlined">filter_list</span>
+                  </button>
+                  <button className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+                    <span className="material-symbols-outlined">sort</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50&h=50&fit=crop"
+                        alt="Company Logo"
+                        keywords="tech, company, logo"
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-slate-800">Senior React Developer</h3>
+                        <p className="text-slate-600">TechCorp Inc.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">Under Review</span>
+                      <button className="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-slate-600">
+                    <span>Applied 3 days ago</span>
+                    <span>$120,000 - $150,000</span>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm">
+                      View Details
+                    </button>
+                    <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm">
+                      Withdraw
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=50&h=50&fit=crop"
+                        alt="Company Logo"
+                        keywords="startup, office, business"
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-slate-800">Full Stack Engineer</h3>
+                        <p className="text-slate-600">StartupXYZ</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Interview Scheduled</span>
+                      <button className="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-slate-600">
+                    <span>Applied 1 week ago</span>
+                    <span>$90,000 - $120,000</span>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm">
+                      View Details
+                    </button>
+                    <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
+                      Interview Info
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=50&h=50&fit=crop"
+                        alt="Company Logo"
+                        keywords="corporate, building, business"
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-slate-800">Software Architect</h3>
+                        <p className="text-slate-600">Global Solutions Ltd.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">Rejected</span>
+                      <button className="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-slate-600">
+                    <span>Applied 2 weeks ago</span>
+                    <span>$140,000 - $180,000</span>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm">
+                      View Feedback
+                    </button>
+                    <button className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">Bookmarked Jobs</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-800">Frontend Developer</p>
+                    <p className="text-sm text-slate-600">DesignStudio</p>
+                  </div>
+                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-800">DevOps Engineer</p>
+                    <p className="text-sm text-slate-600">CloudTech</p>
+                  </div>
+                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-800">Product Manager</p>
+                    <p className="text-sm text-slate-600">InnovateCorp</p>
+                  </div>
+                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">Profile Settings</h3>
+              <div className="space-y-4">
+                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-primary-500">edit</span>
+                  <div>
+                    <p className="font-medium text-slate-800">Edit Profile</p>
+                    <p className="text-sm text-slate-600">Update your information</p>
+                  </div>
+                </button>
+                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-blue-500">security</span>
+                  <div>
+                    <p className="font-medium text-slate-800">Privacy Settings</p>
+                    <p className="text-sm text-slate-600">Manage your privacy</p>
+                  </div>
+                </button>
+                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                  <span className="material-symbols-outlined text-green-500">notifications</span>
+                  <div>
+                    <p className="font-medium text-slate-800">Notifications</p>
+                    <p className="text-sm text-slate-600">Email preferences</p>
+                  </div>
+                </button>
+                <button className="w-full flex items-center gap-3 p-3 text-left border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
+                  <span className="material-symbols-outlined">delete</span>
+                  <div>
+                    <p className="font-medium">Delete Account</p>
+                    <p className="text-sm text-red-500">Permanently remove account</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Next: "Add job search functionality with filters and sorting options" */}
+      {/* Next: "Add notification center for application updates" */}
+    </div> 
+        </div>
+  )
 }
 
-export default Youth
+export default Youthdash;

@@ -49,7 +49,7 @@ const [stats, setStats] = useState({
                             <a href="/jobs" className="text-gray-700 hover:text-primary-600 transition duration-200">
                                 Find Jobs
                             </a>
-                            <a href="jobpost" className="text-gray-700 hover:text-primary-600 transition duration-200">
+                            <a href="/jobpost" className="text-gray-700 hover:text-primary-600 transition duration-200">
                                 Post Jobs
                             </a>
                             <a
