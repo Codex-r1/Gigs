@@ -9,9 +9,6 @@ const JobPostForm = () => {
     experience: "",
     location: "",
     specific_location: "",
-    payment_method: "",
-    min_pay: "",
-    max_pay: "",
     description: "",
     skills: ""
   });
@@ -60,8 +57,8 @@ const JobPostForm = () => {
     <div id="webcrumbs">
       <div className="w-full max-w-4xl mx-auto p-6 bg-white">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Post a New Gig</h1>
-          <p className="text-gray-600">Fill out the details below to connect with local informal workers.</p>
+          <h1 className="text-3xl font-bold mb-2">Post a New Job</h1>
+          <p className="text-gray-600">Fill out the details below to connect with local workers.</p>
         </div>
 
         <form className="space-y-8" onSubmit={handleSubmit}>
@@ -69,7 +66,7 @@ const JobPostForm = () => {
           <div className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <span className="material-symbols-outlined mr-2">work</span>
-              Gig Information
+              Job Information
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

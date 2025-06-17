@@ -14,6 +14,7 @@ CREATE TABLE Jobs (
   description TEXT,
   location VARCHAR(255),
   salary DECIMAL(10,2),
+  status ENUM('open', 'closed', 'draft') DEFAULT 'open',
   jobType ENUM('full-time', 'part-time', 'contract', 'internship') DEFAULT 'full-time',
   category VARCHAR(100),
   postedAt DATETIME DEFAULT CURRENT_TIMESTAMP,

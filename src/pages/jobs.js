@@ -1,158 +1,214 @@
+import React from "react"
+import axios from "axios"
+import { useState, useEffect } from "react"
+import "./style.css"
 
-import React from 'react';
+const Jobs = () => {
+  const [Jobs, setJobs] = useState([]);
 
-const informalJobs = [
-  //  informalJobs array 
-  {
-    title: "House Cleaning Help",
-    category: "Domestic Work",
-    description: "Looking for a trustworthy person to clean a home twice weekly.",
-    location: "Kibera, Nairobi",
-  },
-  {
-    title: "Boda Boda Delivery",
-    category: "Delivery",
-    description: "Deliver packages within town. Must have valid license.",
-    location: "Kampala, Uganda",
-  },
-  {
-    title: "Salon Assistant",
-    category: "Beauty",
-    description: "Assist with braiding and cleaning salon equipment.",
-    location: "Thika Road, Nairobi",
-  },
-  {
-    title: "Car Wash Attendant",
-    category: "Automotive",
-    description: "Help clean vehicles at a busy roadside station.",
-    location: "Mombasa Town",
-  },
-  {
-    title: "Gardener",
-    category: "Landscaping",
-    description: "Weekly gardening for small residential compounds.",
-    location: "Nakuru",
-  },
-  {
-    title: "Juice Vendor Assistant",
-    category: "Food & Beverage",
-    description: "Prepare and sell juice in a busy market area.",
-    location: "Kariobangi, Nairobi",
-  },
-  {
-    title: "DJ Assistant",
-    category: "Entertainment",
-    description: "Set up equipment and support DJ during events.",
-    location: "Eldoret",
-  },
-  {
-    title: "M-Pesa Attendant",
-    category: "Retail",
-    description: "Manage M-Pesa kiosk, handle customer transactions.",
-    location: "Kitengela",
-  },
-  {
-    title: "Garbage Collection Helper",
-    category: "Environmental",
-    description: "Assist local cleanup project on weekends.",
-    location: "Githurai 45",
-  },
-  {
-    title: "Welding Apprentice",
-    category: "Skilled Labor",
-    description: "Learn welding and fabrication at Juakali workshop.",
-    location: "Kariobangi",
-  },
-  {
-    title: "Phone Repair Assistant",
-    category: "Technical",
-    description: "Train on replacing screens and small electronics repair.",
-    location: "Eastleigh",
-  },
-  {
-    title: "Street Vendor Helper",
-    category: "Sales",
-    description: "Help sell fruits and drinks on the roadside.",
-    location: "Machakos",
-  },
-  {
-    title: "Construction Laborer",
-    category: "Construction",
-    description: "Carry materials and clean site daily.",
-    location: "Kisumu",
-  },
-  {
-    title: "Event Usher",
-    category: "Event Support",
-    description: "Guide guests at weddings and events, uniform provided.",
-    location: "Naivasha",
-  },
-  {
-    title: "Laundry Pickup Rider",
-    category: "Delivery",
-    description: "Pick and deliver laundry orders by motorbike.",
-    location: "Kawangware",
-  },
-  {
-    title: "Fruit Stall Assistant",
-    category: "Retail",
-    description: "Sort and serve fruits in a local stall.",
-    location: "Ruaka",
-  },
-  {
-    title: "Painter Helper",
-    category: "Skilled Labor",
-    description: "Mix paint and prep surfaces for painting.",
-    location: "Syokimau",
-  },
-  {
-    title: "Tailoring Apprentice",
-    category: "Fashion",
-    description: "Help with sewing and measuring clients.",
-    location: "Kayole",
-  },
-  {
-    title: "Butchery Assistant",
-    category: "Food Processing",
-    description: "Assist in cutting meat and packaging.",
-    location: "Ngong",
-  },
-  {
-    title: "Street Performer Assistant",
-    category: "Entertainment",
-    description: "Support with gear and collect audience donations.",
-    location: "CBD Nairobi",
-  },
-];
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
-function Jobs() {
-  return (
-    <section className="section jobs-section" style={{ backgroundColor: "#f9f9f9", padding: "60px 0" }}>
-      <div className="container">
-        <div className="section-title text-center mb-5">
-          <h2>Informal Job Listings</h2>
-          <p>Find local gigs and short-term jobs that match your skills.</p>
-        </div>
-        <div className="row">
-          {informalJobs.map((job, index) => (
-            <div className="col-md-4 mb-4" key={index}>
-              <div className="card h-100 shadow-sm rounded">
-                <div className="card-body">
-                  <h5 className="card-title">{job.title}</h5>
-                  <h6 className="text-muted">{job.category}</h6>
-                  <p className="card-text">{job.description}</p>
-                  <p className="text-muted">
-                    <i className="fa fa-map-marker" aria-hidden="true"></i> {job.location}
-                  </p>
-                  <button className="btn btn-primary btn-sm">Apply Now</button>
-                </div>
-              </div>
-            </div>
-          ))}
+  const fetchJobs = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/jobs");
+      setJobs(res.data);
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+    }
+  };
+  const applyToJob = async (jobId) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.post("http://localhost:5000/api/applications", { job_id: jobId }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    alert("Applied successfully!");
+  } catch (err) {
+    console.error("Failed to apply:", err.response?.data || err.message);
+    alert(err.response?.data?.error || "Failed to apply.");
+  }
+};
+
+    return (
+        <div id="webcrumbs">
+            <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                <div className="max-w-7xl mx-auto">
+                    <header className="mb-8">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h1 className="text-4xl font-bold text-slate-800 mb-2">Browse Informal Job Listings</h1>
+                                <p className="text-slate-600">View opportunities posted by local employers for casual and short-term work</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Mason, Tailor, Driver..."
+                                        className="w-full sm:w-80 pl-10 pr-4 py-3 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300"
+                                    />
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                                        search
+                                    </span>
+                                </div>
+                                <button className="px-6 py-3 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center gap-2">
+                                    <span className="material-symbols-outlined">filter_list</span>
+                                    Filters
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <aside className="lg:col-span-1">
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4">Filter Listings</h3>
+
+                                <div className="space-y-6">
+                                    <div>
+                                        <h4 className="font-medium text-slate-700 mb-3">Job Type</h4>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">Casual</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">One-day Job</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">Recurring Gigs</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="font-medium text-slate-700 mb-3">Location</h4>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Kibera, Mathare, Githurai"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <h4 className="font-medium text-slate-700 mb-3">Pay Range (KES)</h4>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">Below 500</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">500 - 1000</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">Above 1000</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <main className="lg:col-span-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                                <p className="text-slate-600">Showing latest informal jobs in your area</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-600 text-sm">Sort by:</span>
+                                    <select className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                        <option>Most Recent</option>
+                                        <option>Highest Pay</option>
+                                        <option>Nearest Location</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                           <div className="grid gap-6">
+  {Jobs.length === 0 ? (
+    <p className="text-slate-500 text-center">No jobs found.</p>
+  ) : (
+    Jobs.map((job) => (
+      <div
+        key={job.job_id}
+        className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition"
+      >
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-800 mb-1">{job.title}</h2>
+            <p className="text-slate-600 text-sm mb-1">{job.location}</p>
+            <p className="text-slate-700">{job.description}</p>
+            <p className="text-indigo-600 text-sm mt-2">{job.category}</p>
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <button
+  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+  onClick={() => applyToJob(job.job_id)}
+>
+  Apply
+</button>
+
+            <button
+              className="text-sm text-slate-500 hover:text-slate-700"
+              onClick={() => alert(`Bookmarking job ID ${job.job_id}`)}
+            >
+              Bookmark
+            </button>
+          </div>
         </div>
       </div>
-    </section>
-  );
-}
+    ))
+  )}
+</div>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-12 gap-4">
+                                <p className="text-slate-600">Showing 1-10 results</p>
+                                <div className="flex items-center gap-2">
+                                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                                        Previous
+                                    </button>
+                                    <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                                        1
+                                    </button>
+                                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                                        2
+                                    </button>
+                                    <span className="px-2 text-slate-400">...</span>
+                                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default Jobs;

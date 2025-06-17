@@ -2,9 +2,14 @@
 require('dotenv').config();
 const pool = require('./config/database');
 const express = require('express');
-const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const app = express();
+const cors = require("cors");
+app.use(cors({
+  origin: 'http://localhost:3000', // your React frontend
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 (async () => {
   try {
     const connection = await pool.getConnection();
@@ -14,7 +19,6 @@ const app = express();
     console.error('Database connection failed:', err.message);
   }
 })();
-app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api', require('./routes/jobs'));
