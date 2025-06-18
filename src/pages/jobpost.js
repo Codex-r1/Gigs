@@ -5,12 +5,10 @@ const JobPostForm = () => {
   const [formData, setFormData] = useState({
     title: "",
     category: "",
-    job_type: "",
-    experience: "",
     location: "",
     specific_location: "",
     description: "",
-    skills: ""
+    salary: ""
   });
 
   // Handle changes in form inputs
@@ -33,17 +31,19 @@ const JobPostForm = () => {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          location: `${formData.location}, ${formData.specific_location}`,
-          category: formData.category
-        })
+  title: formData.title,
+  description: formData.description,
+  location: `${formData.location}, ${formData.specific_location}`,
+  category: formData.category,
+  salary: formData.salary
+})
+
       });
 
       const data = await response.json();
       if (response.ok) {
         alert("Job posted successfully!");
-        setFormData({ title: "", category: "", job_type: "", experience: "", location: "", specific_location: "", payment_method: "", min_pay: "", max_pay: "", description: "", skills: "" });
+        setFormData({ title: "", category: "", location: "", specific_location: "", description: ""});
       } else {
         alert(data.error || "Something went wrong.");
       }
@@ -92,6 +92,18 @@ const JobPostForm = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   required
                 >
+                  <div>
+  <label className="block text-sm font-medium mb-2">Salary (KES)</label>
+  <input
+    type="number"
+    name="salary"
+    value={formData.salary}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+    placeholder="e.g. 800"
+  />
+</div>
+
                   <option value="">Select Job Category</option>
                   <option>Delivery</option>
                   <option>Cleaning</option>
@@ -165,9 +177,9 @@ const JobPostForm = () => {
           <div className="flex justify-end pt-6">
             <button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
+              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105"
             >
-              Post Informal Gig
+              Post Job
             </button>
           </div>
         </form>

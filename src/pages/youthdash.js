@@ -6,6 +6,12 @@ const Youthdash = () => {
   const [Jobs, setJobs] = useState([]);
   const [profile, setProfile] = useState(null);
 const [applications, setApplications] = useState([]);
+const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
+const [stats, setStats] = useState({
+  applications: 0,
+  bookmarks: 0,
+  profileViews: 0
+});
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -33,12 +39,42 @@ const [applications, setApplications] = useState([]);
         console.error("Error fetching profile:", err);
       }
     };
+    const fetchBookmarks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/bookmarks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setBookmarkedJobs(res.data);
+    } catch (err) {
+      console.error("Error fetching bookmarks:", err);
+    }
+  };
+const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('http://localhost:5000/api/stats/youth', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setStats(res.data);
+    } catch (err) {
+      console.error("Failed to fetch stats", err);
+    }
+  };
+
+  fetchStats();
+  fetchBookmarks();
 
     fetchApplications();
     fetchProfile();
   }, []);
 
   return (
+
 <div id="webcrumbs"> 
             <div className="w-full max-w-6xl mx-auto p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -72,27 +108,23 @@ const [applications, setApplications] = useState([]);
   <p>Loading profile...</p>
 )}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-            <h3 className="font-semibold text-slate-800 mb-4">Quick Stats</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Applications</span>
-                <span className="font-semibold text-slate-800">12</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Interviews</span>
-                <span className="font-semibold text-slate-800">5</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Bookmarks</span>
-                <span className="font-semibold text-slate-800">8</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600">Profile Views</span>
-                <span className="font-semibold text-slate-800">127</span>
-              </div>
-            </div>
-          </div>
-        </div>
+  <h3 className="font-semibold text-slate-800 mb-4">Quick Stats</h3>
+  <div className="space-y-4">
+    <div className="flex justify-between items-center">
+      <span className="text-slate-600">Applications</span>
+      <span className="font-semibold text-slate-800">{stats.applications}</span>
+    </div>
+    <div className="flex justify-between items-center">
+      <span className="text-slate-600">Bookmarks</span>
+      <span className="font-semibold text-slate-800">{stats.bookmarks}</span>
+    </div>
+    <div className="flex justify-between items-center">
+      <span className="text-slate-600">Profile Views</span>
+      <span className="font-semibold text-slate-800">{stats.profileViews}</span>
+    </div>
+  </div>
+</div>
+
         
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200">
@@ -159,85 +191,38 @@ const [applications, setApplications] = useState([]);
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-              <h3 className="text-xl font-bold text-slate-800 mb-4">Bookmarked Jobs</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800">Frontend Developer</p>
-                    <p className="text-sm text-slate-600">DesignStudio</p>
-                  </div>
-                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+        <h3 className="text-xl font-bold text-slate-800 mb-4">Bookmarked Jobs</h3>
+        <div className="space-y-3">
+          {bookmarkedJobs.length === 0 ? (
+            <p className="text-slate-500">You haven’t bookmarked any jobs yet.</p>
+          ) : (
+            bookmarkedJobs.map((job) => (
+              <div
+                key={job.job_id}
+                className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                <span className="material-symbols-outlined text-yellow-500">bookmark</span>
+                <div className="flex-1">
+                  <p className="font-medium text-slate-800">{job.title}</p>
+                  <p className="text-sm text-slate-600">{job.location}</p>
                 </div>
-                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800">DevOps Engineer</p>
-                    <p className="text-sm text-slate-600">CloudTech</p>
-                  </div>
-                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-yellow-500">bookmark</span>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800">Product Manager</p>
-                    <p className="text-sm text-slate-600">InnovateCorp</p>
-                  </div>
-                  <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-              <h3 className="text-xl font-bold text-slate-800 mb-4">Profile Settings</h3>
-              <div className="space-y-4">
-                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-primary-500">edit</span>
-                  <div>
-                    <p className="font-medium text-slate-800">Edit Profile</p>
-                    <p className="text-sm text-slate-600">Update your information</p>
-                  </div>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-blue-500">security</span>
-                  <div>
-                    <p className="font-medium text-slate-800">Privacy Settings</p>
-                    <p className="text-sm text-slate-600">Manage your privacy</p>
-                  </div>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 text-left border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="material-symbols-outlined text-green-500">notifications</span>
-                  <div>
-                    <p className="font-medium text-slate-800">Notifications</p>
-                    <p className="text-sm text-slate-600">Email preferences</p>
-                  </div>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 text-left border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
-                  <span className="material-symbols-outlined">delete</span>
-                  <div>
-                    <p className="font-medium">Delete Account</p>
-                    <p className="text-sm text-red-500">Permanently remove account</p>
-                  </div>
+                <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
               </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </div>
-      
-      {/* Next: "Add job search functionality with filters and sorting options" */}
-      {/* Next: "Add notification center for application updates" */}
-    </div> 
+    </div>
+    </div>
         </div>
-  )
-}
+      </div>
+      </div>
+    </div>
+  );
+};
 
 export default Youthdash;

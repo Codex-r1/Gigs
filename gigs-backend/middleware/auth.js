@@ -19,7 +19,7 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
-
+// This middleware checks if the user has one of the specified roles
 function authorizeRoles(...roles) {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
@@ -28,4 +28,5 @@ function authorizeRoles(...roles) {
     next();
   };
 }
+
 module.exports = { authenticateToken, authorizeRoles };

@@ -22,6 +22,11 @@ app.use(cors({
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api', require('./routes/jobs'));
+app.use('/api/bookmarks', require('./routes/bookmarks'));
+const statsRoutes = require('./routes/stats');
+app.use('/api/stats', statsRoutes);
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
 const applicantRoutes = require('./routes/applicants');
 app.use('/api/applicants', applicantRoutes);
 const employerRoutes = require('./routes/employer');
