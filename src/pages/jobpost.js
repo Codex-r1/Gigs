@@ -8,21 +8,20 @@ const JobPostForm = () => {
     location: "",
     specific_location: "",
     description: "",
-    salary: ""
+    salary: "",
+    skill: ""
   });
 
-  // Handle changes in form inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("token"); // Adjust if stored elsewhere
+      const token = localStorage.getItem("token");
 
       const response = await fetch("http://localhost:5000/api/jobs", {
         method: "POST",
@@ -31,25 +30,33 @@ const JobPostForm = () => {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-  title: formData.title,
-  description: formData.description,
-  location: `${formData.location}, ${formData.specific_location}`,
-  category: formData.category,
-  salary: formData.salary
-})
-
+          title: formData.title,
+          description: formData.description,
+          location: `${formData.location}, ${formData.specific_location}`,
+          category: formData.category,
+          salary: formData.salary,
+          skill: formData.skill
+        })
       });
 
       const data = await response.json();
       if (response.ok) {
         alert("Job posted successfully!");
-        setFormData({ title: "", category: "", location: "", specific_location: "", description: ""});
+        setFormData({
+          title: "",
+          category: "",
+          location: "",
+          specific_location: "",
+          description: "",
+          salary: "",
+          skill: ""
+        });
       } else {
         alert(data.error || "Something went wrong.");
       }
     } catch (error) {
       console.error("Error submitting job:", error);
-      alert("Server error. Try again later.");
+      alert("Failed to post job. Please try again later.");
     }
   };
 
@@ -62,7 +69,6 @@ const JobPostForm = () => {
         </div>
 
         <form className="space-y-8" onSubmit={handleSubmit}>
-          {/* Example input field connected to state */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <span className="material-symbols-outlined mr-2">work</span>
@@ -92,18 +98,6 @@ const JobPostForm = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   required
                 >
-                  <div>
-  <label className="block text-sm font-medium mb-2">Salary (KES)</label>
-  <input
-    type="number"
-    name="salary"
-    value={formData.salary}
-    onChange={handleChange}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-    placeholder="e.g. 800"
-  />
-</div>
-
                   <option value="">Select Job Category</option>
                   <option>Delivery</option>
                   <option>Cleaning</option>
@@ -114,10 +108,41 @@ const JobPostForm = () => {
                   <option>Other</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Salary (KES)</label>
+                <input
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. 800"
+                  min={300}
+                  max={10000}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Skill Level</label>
+                <select
+                  name="skill"
+                  value={formData.skill}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="">Select Skill Level</option>
+                  <option>Beginner</option>
+                  <option>Intermediate</option>
+                  <option>Experienced</option>
+                  <option>Expert</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Location */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <span className="material-symbols-outlined mr-2">location_on</span>
@@ -152,7 +177,6 @@ const JobPostForm = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <span className="material-symbols-outlined mr-2">description</span>
@@ -173,7 +197,6 @@ const JobPostForm = () => {
             </div>
           </div>
 
-          {/* Submit */}
           <div className="flex justify-end pt-6">
             <button
               type="submit"

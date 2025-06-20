@@ -19,17 +19,17 @@ app.use(cors({
     console.error('Database connection failed:', err.message);
   }
 })();
+
 app.use(express.json());
 app.use('/api/auth', authRoutes);
-app.use('/api', require('./routes/jobs'));
+app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/bookmarks', require('./routes/bookmarks'));
 const statsRoutes = require('./routes/stats');
 app.use('/api/stats', statsRoutes);
-const userRoutes = require('./routes/users');
-app.use('/api/users', userRoutes);
 const applicantRoutes = require('./routes/applicants');
 app.use('/api/applicants', applicantRoutes);
 const employerRoutes = require('./routes/employer');
 app.use('/api/employer', employerRoutes); 
-
+const employerStatsRoutes = require('./routes/employerStats');
+app.use('/api/employerStats', employerStatsRoutes);
 app.listen(5000, () => console.log('Server running on port 5000'));

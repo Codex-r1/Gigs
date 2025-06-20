@@ -11,27 +11,29 @@ export default function Login() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', form);
-      localStorage.setItem('token', res.data.token);
+  e.preventDefault();
+  try {
+    const res = await axios.post('http://localhost:5000/api/auth/login', form);
 
-      // ✅ Redirect based on role
-      if (res.data.role === 'applicant') {
-        navigate('/youthdash');
-      } else if (res.data.role === 'employer') {
-        navigate('/employerdash');
-      } else if (res.data.role === 'admin') {
-        navigate('/admin');
-      } else {
-        alert('Unknown role');
-      }
+    // ✅ Store both token and role
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('role', res.data.role); // 👈 Add this line
 
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+    // ✅ Redirect based on role
+    if (res.data.role === 'applicant') {
+      navigate('/youthdash');
+    } else if (res.data.role === 'employer') {
+      navigate('/employerdash');
+    } else if (res.data.role === 'admin') {
+      navigate('/admin');
+    } else {
+      alert('Unknown role');
     }
-  };
 
+  } catch (err) {
+    alert(err.response?.data?.message || 'Login failed');
+  }
+};
   return (
     <div>
       <section className="login-wrapper">

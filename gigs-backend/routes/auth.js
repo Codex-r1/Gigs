@@ -3,7 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database'); // mysql2
+const { authenticateToken } = require('../middleware/auth'); // <-- Notice the curly braces!
 require('dotenv').config();
+
 
 // Register Route
 router.post('/register', async (req, res) => {
@@ -56,48 +58,21 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
+// After receiving JWT from backend
+const decoded = JSON.parse(atob(token.split('.')[1]));
+   
 
     res.json({ message: 'Login successful', token, role: user.role });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ message: 'Login failed', error: err.message });
+    
   }
 });
-
-// Profile Route
-router.get('/profile', async (req, res) => {
-  const userId = req.user?.userId;
-
-  if (!userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
-  try {
-    const [rows] = await pool.execute(
-      'SELECT firstName, lastName, email, role FROM Users WHERE userId = ?',
-      [userId]
-    );
-
-    if (!rows[0]) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json(rows[0]);
-  } catch (err) {
-    console.error('Profile error:', err.message);
-    res.status(500).json({ message: 'Database error', error: err.message });
-  }
-});
-
-// Logout Route
-router.post('/logout', (req, res) => {
-  res.json({ message: 'Logout successful' });
-});
-
 // GET all jobs
 router.get('/api/jobs', async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM jobs ORDER BY created_at DESC');
+    const [rows] = await pool.execute('SELECT * FROM jobs ORDER BY created_at DESC');
     res.json(rows);
   } catch (err) {
     console.error('Error fetching jobs:', err);
@@ -105,5 +80,66 @@ router.get('/api/jobs', async (req, res) => {
   }
 });
 
+// GET /api/auth/profile
+router.get('/profile', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const [rows] = await pool.execute(
+      'SELECT firstName, lastName, email, phone, bio FROM Users WHERE userId = ?',
+      [userId]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching profile', error: err.message });
+  }
+});
+
+// PUT /api/auth/profile
+router.put('/profile', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { firstName, lastName, email, phone, bio } = req.body;
+  try {
+    await pool.execute(
+      'UPDATE Users SET firstName = ?, lastName = ?, email = ?, phone = ?, bio = ? WHERE userId = ?',
+      [firstName, lastName, email, phone, bio, userId]
+    );
+    res.json({ message: 'Profile updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating profile', error: err.message });
+  }
+});
+
+// PUT /api/auth/update-password
+router.put('/update-password', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const [rows] = await pool.execute('SELECT password FROM Users WHERE userId = ?', [userId]);
+    const user = rows[0];
+
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ message: 'Incorrect current password' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.execute('UPDATE Users SET password = ? WHERE userId = ?', [hashedPassword, userId]);
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating password', error: err.message });
+  }
+});
+
+// DELETE /api/auth/delete-account
+router.delete('/delete-account', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    await pool.execute('DELETE FROM Users WHERE userId = ?', [userId]);
+    res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting account', error: err.message });
+  }
+});
 
 module.exports = router;
