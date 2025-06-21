@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./set.css";
+import "../styles/set.css";
 
  const Settings = () => {
   const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    bio: "",
-  });
+  bio: "",
+  skills: "",
+  location: ""
+});
 
   const [passwords, setPasswords] = useState({
     currentPassword: "",
@@ -77,7 +75,7 @@ import "./set.css";
     }
     try {
       await axios.put(
-        "http://localhost:5000/api/auth/update-password",
+        "http://localhost:5000/api/auth/update-pass",
         {
           currentPassword: passwords.currentPassword,
           newPassword: passwords.newPassword,
@@ -99,7 +97,7 @@ import "./set.css";
   const handleDeleteAccount = async () => {
     if (!window.confirm("Are you sure? This action cannot be undone.")) return;
     try {
-      await axios.delete("http://localhost:5000/api/auth/delete-account", {
+      await axios.delete("http://localhost:5000/api/auth/delete-acc", {
         headers: { Authorization: `Bearer ${token}` },
       });
       localStorage.removeItem("token");
@@ -130,77 +128,49 @@ import "./set.css";
               </div>
 
               <form className="space-y-6" onSubmit={handleUpdateProfile}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={profile.firstName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={profile.lastName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
-                    />
-                  </div>
-                </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+    <textarea
+      name="bio"
+      value={profile.bio}
+      onChange={handleChange}
+      rows="4"
+      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
+    />
+  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={profile.email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
-                  />
-                </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">Skills</label>
+    <input
+      type="text"
+      name="skills"
+      value={profile.skills}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
+    />
+  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={profile.phone || ""}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
-                  />
-                </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+    <input
+      type="text"
+      name="location"
+      value={profile.location}
+      onChange={handleChange}
+      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2"
+    />
+  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                  <textarea
-                    name="bio"
-                    value={profile.bio || ""}
-                    onChange={handleChange}
-                    rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 resize-none"
-                  />
-                </div>
+  <div className="flex gap-4">
+    <button
+      type="submit"
+      className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+    >
+      Save Changes
+    </button>
+  </div>
+</form>
 
-                <div className="flex gap-4">
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
             </div>
 
             {/* PASSWORD SECTION */}
@@ -263,6 +233,12 @@ import "./set.css";
               <div className="w-24 h-24 mx-auto rounded-full bg-gray-200 mb-4"></div>
               <h3 className="text-lg font-semibold text-gray-900">{profile.firstName} {profile.lastName}</h3>
               <p className="text-gray-500 text-sm">{profile.email}</p>
+              <img
+  src={profile.photo || "https://via.placeholder.com/100"}
+  alt="Profile"
+  className="w-24 h-24 mx-auto rounded-full object-cover mb-4"
+/>
+
             </div>
           </div>
         </div>

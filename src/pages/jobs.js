@@ -1,7 +1,7 @@
 import React from "react"
 import axios from "axios"
 import { useState, useEffect } from "react"
-import "./style.css"
+import "../styles/style.css"
 
 const Jobs = () => {
   const [Jobs, setJobs] = useState([]);
@@ -77,21 +77,35 @@ const Jobs = () => {
                                                     type="checkbox"
                                                     className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
                                                 />
-                                                <span className="text-slate-600">Casual</span>
+                                                <span className="text-slate-600">One-Time</span>
                                             </label>
                                             <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
                                                 />
-                                                <span className="text-slate-600">One-day Job</span>
+                                                <span className="text-slate-600">Full-time</span>
                                             </label>
                                             <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
                                                 <input
                                                     type="checkbox"
                                                     className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
                                                 />
-                                                <span className="text-slate-600">Recurring Gigs</span>
+                                                <span className="text-slate-600">Remote</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">On-call</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-slate-600">Temporary</span>
                                             </label>
                                         </div>
                                     </div>
@@ -106,7 +120,7 @@ const Jobs = () => {
                                     </div>
 
                                     <div>
-                                        <h4 className="font-medium text-slate-700 mb-3">Pay Range (KES)</h4>
+                                        <h4 className="font-medium text-slate-700 mb-3">Pay Range (KES/h)</h4>
                                         <div className="space-y-2">
                                             <label className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
                                                 <input
@@ -167,7 +181,7 @@ const Jobs = () => {
 
           <div className="flex flex-col items-end gap-2">
             <button
-  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+  className="mt-4 px-4 py-2 bg-indigo-600 text-black rounded hover:bg-indigo-700"
   onClick={() => applyToJob(job.job_id)}
 >
   Apply

@@ -1,13 +1,17 @@
 import React from "react"
 import Chart from "react-apexcharts"
 import { useState, useEffect } from "react"
-import "./stylez.css"
+import "../styles/stylez.css"
 
 const EmployerDash = () => {
 const [stats, setStats] = useState({
     active: 0,
     pending: 0,
     totalApplications: 0
+  });
+  const [chartData, setChartData] = useState({
+    categories: [],
+    data: [],
   });
 const [applicants, setApplicants] = useState([]);
   const token = localStorage.getItem('token');
@@ -43,6 +47,29 @@ const fetchApplicants = async () => {
     console.error("Error fetching applicants:", error);
   }
 };
+const fetchTrends = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch("http://localhost:5000/api/analytics/applications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+
+        // Expected: result = { months: ['Jan', 'Feb', 'Mar', 'Apr'], values: [12, 15, 22, 30] }
+        setChartData({
+          categories: result.months,
+          data: result.values,
+        });
+      } catch (error) {
+        console.error("Failed to fetch analytics:", error);
+      }
+    };
+
+    fetchTrends();
 fetchApplicants();
     fetchStats();
   }, [token], [role]);
@@ -142,7 +169,7 @@ fetchApplicants();
   Post New Job Listing
 </button>
 
-                                <button className="bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-200 shadow-sm transition duration-200 flex items-center justify-center">
+                                <button className="bg-white hover:bg-gray-50 text-gray-800 font-medium py-3 px-4 rounded-lg border border-gray-200 shadow-sm transition duration-200 flex items-center justify-center" onClick={() => window.location.href='/manage'}>
                                     <span className="material-symbols-outlined mr-2">manage_accounts</span>
                                     Manage Applicants
                                 </button>
@@ -195,29 +222,28 @@ fetchApplicants();
                                 <h3 className="text-lg font-medium text-gray-700 mb-4">Application Trends</h3>
                                 <div className="h-64 w-full">
                                     <Chart
-                                        options={{
-                                            chart: {
-                                                type: 'line',
-                                                zoom: { enabled: false },
-                                            },
-                                            xaxis: {
-                                                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                                            },
-                                            yaxis: {
-                                                title: { text: 'Number of Applications' },
-                                            },
-                                            colors: ['#4F46E5'],
-                                        }}
-                                        series={[{ name: 'Applications', data: [30, 40, 35, 50, 49, 60] }]}
-                                        type="line"
-                                        height="100%"
-                                    />
-                                </div>
-                            </div>
-                            <div className="lg:col-span-6 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-lg font-medium text-gray-700 mb-4">Job Categories</h3>
-                                <div className="h-64 w-full">
-                                    
+          options={{
+            chart: {
+              type: "line",
+              zoom: { enabled: false },
+            },
+            xaxis: {
+              categories: chartData.categories,
+            },
+            yaxis: {
+              title: { text: "Number of Applications" },
+            },
+            colors: ["#4F46E5"],
+          }}
+          series={[
+            {
+              name: "Applications",
+              data: chartData.data,
+            },
+          ]}
+          type="line"
+          height="100%"
+        />
                                 </div>
                             </div>
                         </div>

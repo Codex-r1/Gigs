@@ -1,7 +1,7 @@
 import React from "react"
 import Chart from "react-apexcharts"
 import { useState, useEffect } from "react"
-import "./stylez.css"
+import "../styles/stylez.css"
 
 const AdminDash = () => {
 const [stats, setStats] = useState({

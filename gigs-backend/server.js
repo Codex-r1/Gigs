@@ -24,6 +24,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/bookmarks', require('./routes/bookmarks'));
+const ratingsRoutes = require('./routes/ratings');
+app.use('/api/ratings', ratingsRoutes); // ✅
+const profileRoutes = require('./routes/profile');
+app.use('/api/auth/profile', profileRoutes);
 const statsRoutes = require('./routes/stats');
 app.use('/api/stats', statsRoutes);
 const applicantRoutes = require('./routes/applicants');

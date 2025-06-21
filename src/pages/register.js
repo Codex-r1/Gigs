@@ -10,7 +10,6 @@ export default function Register() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'employee', // Default to employee
   });
 
   const handleChange = (e) => {
@@ -104,7 +103,7 @@ export default function Register() {
                 required
               >
                 <option value="select">Select Role</option>
-                <option value="employee">Applicant </option>
+                <option value="applicant">Applicant </option>
                 <option value="employer">Employer </option>
                 
               </select>

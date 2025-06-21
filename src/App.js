@@ -18,6 +18,9 @@ import AdminDash from './pages/admindash';
 import EmployerDash from './pages/employerdash';
 import JobPostForm from './pages/jobpost';
 import Settings from './pages/settings';
+import About from './pages/about'; 
+import ApplicantFAQs from './pages/FAQs';
+import Rate from './pages/manage';
 
 
 
@@ -40,6 +43,10 @@ function AppLayout() {
         <Route path="/employerdash" element={<EmployerDash />} />
         <Route path="/jobpost" element={<JobPostForm />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/FAQs" element={<ApplicantFAQs />} />
+        <Route path="/manage" element={<Rate />} />
+        {/* Add more routes as needed */}
       </Routes>
       <Footer />
     </>

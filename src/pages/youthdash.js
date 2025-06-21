@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./style.css";
+import "../styles/style.css";
 
 const Youthdash = () => {
   const [Jobs, setJobs] = useState([]);

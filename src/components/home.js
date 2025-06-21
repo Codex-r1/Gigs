@@ -17,15 +17,8 @@ function App() {
       <div className="col-md-4 col-sm-4">
         <div className="features-content">
           <span className="box1"><span aria-hidden="true" className="icon-search" /></span>
-          <h3>Find Nearby Gigs</h3>
+          <h3>Find Nearby Jobs</h3>
           <p>Browse informal jobs like cleaning, delivery, construction, and more from people and businesses near you.</p>
-        </div>
-      </div>
-      <div className="col-md-4 col-sm-4">
-        <div className="features-content">
-          <span className="box1"><span aria-hidden="true" className="icon-printer" /></span>
-          <h3>Apply Easily</h3>
-          <p>No resume needed—just apply directly to jobs and start working faster using your profile and skill badges.</p>
         </div>
       </div>
 
@@ -38,16 +31,9 @@ function App() {
       </div>
       <div className="col-md-4 col-sm-4">
         <div className="features-content">
-          <span className="box1"><span aria-hidden="true" className="icon-search" /></span>
-          <h3>Chat With Employers</h3>
-          <p>Message employers directly, ask questions about the work, and arrange job details before accepting.</p>
-        </div>
-      </div>
-      <div className="col-md-4 col-sm-4">
-        <div className="features-content">
           <span className="box1"><span aria-hidden="true" className="icon-printer" /></span>
           <h3>Get Paid Quickly</h3>
-          <p>Complete gigs and receive your payment securely through the platform or in cash as agreed.</p>
+          <p>Complete jobs and receive your payment securely through the platform or in cash as agreed.</p>
         </div>
       </div>
     </div>
@@ -170,7 +156,7 @@ function App() {
         </div>
       </div>
       <div className="row">
-        <input type="button" className="btn brows-btn" defaultValue="Browse All Jobs" />
+        <input type="button" href= "/jobs" className="btn brows-btn" defaultValue="Browse All Jobs" />
       </div>
     </div>
   </section>

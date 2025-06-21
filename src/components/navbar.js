@@ -27,7 +27,7 @@ function Navbar() {
               <i className="fa fa-bars" />
             </button>
             <Link className="navbar-brand" to="/">
-              {/* Logo if needed */}
+              <img src="" className="logo" alt="Logo" />
             </Link>
           </div>
 
@@ -49,6 +49,11 @@ function Navbar() {
                 </>
               )}
               {role === "applicant" && (
+                <>
+                  <li><Link to="/settings">Settings</Link></li>
+                </>
+              )}
+              {role === "admin" && (
                 <>
                   <li><Link to="/settings">Settings</Link></li>
                 </>

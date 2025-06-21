@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./post.css";
+import "../styles/post.css";
 
 const JobPostForm = () => {
   const [formData, setFormData] = useState({

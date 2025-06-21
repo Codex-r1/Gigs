@@ -25,9 +25,7 @@ export default function Login() {
     } else if (res.data.role === 'employer') {
       navigate('/employerdash');
     } else if (res.data.role === 'admin') {
-      navigate('/admin');
-    } else {
-      alert('Unknown role');
+      navigate('/admindash');
     }
 
   } catch (err) {
