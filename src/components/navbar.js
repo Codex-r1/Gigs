@@ -48,6 +48,11 @@ function Navbar() {
                   <li><Link to="/settings">Settings</Link></li>
                 </>
               )}
+              {role === "applicant" && (
+                <>
+                  <li><Link to="/settings">Settings</Link></li>
+                </>
+              )}
 
               {!isLoggedIn && <li><Link to="/login">Login</Link></li>}
 

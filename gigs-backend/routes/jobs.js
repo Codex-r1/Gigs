@@ -14,10 +14,9 @@ router.post('/', authenticateToken, async (req, res) => {
     skill
   } = req.body;
 
-  const employerId = req.user?.userId;
-
-  console.log("EMPLOYER ID (from token):", employerId);
-  console.log("Request Body:", req.body);
+const employerId = req.user.id;
+console.log('EMPLOYER ID (from token):', employerId);
+console.log("Request Body:", req.body);
 
   // Nullish coalescing to avoid undefined errors
   const safeTitle = title ?? null;
@@ -43,7 +42,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
   try {
     const query = `
-      INSERT INTO jobs (employerId, title, description, location, category, salary, skill, postedAt)
+      INSERT INTO jobs (employerId, title, description, location, category, salary, skill, status, postedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW())
     `;
     const values = [safeEmployerId, safeTitle, safeDescription, safeLocation, safeCategory, safeSalary, safeSkill];
@@ -62,7 +61,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // GET / (relative to /api/jobs from server.js, so becomes /api/jobs)
 router.get('/', async (req, res) => { // Changed '/jobs' to '/'
   try {
-    const [rows] = await pool.execute('SELECT * FROM Jobs ORDER BY posted_at DESC');
+    const [rows] = await pool.execute('SELECT * FROM Jobs ORDER BY postedAt DESC');
     res.json(rows);
   } catch (err) {
     console.error("DB FETCH ERROR (GET /api/jobs):", err);

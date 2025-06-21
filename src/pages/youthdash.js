@@ -118,10 +118,6 @@ const fetchStats = async () => {
       <span className="text-slate-600">Bookmarks</span>
       <span className="font-semibold text-slate-800">{stats.bookmarks}</span>
     </div>
-    <div className="flex justify-between items-center">
-      <span className="text-slate-600">Profile Views</span>
-      <span className="font-semibold text-slate-800">{stats.profileViews}</span>
-    </div>
   </div>
 </div>
 

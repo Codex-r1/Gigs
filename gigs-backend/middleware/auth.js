@@ -14,7 +14,8 @@ function authenticateToken(req, res, next) {
     req.user = user; 
 
     console.log("Decoded token payload:", user);
-    console.log("Authenticated User ID:", user.userId);
+    console.log("Authenticated User ID:", user.id);
+
 
     next();
   });

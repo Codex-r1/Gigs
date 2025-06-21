@@ -127,18 +127,18 @@ const JobPostForm = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">Skill Level</label>
                 <select
-                  name="skill"
-                  value={formData.skill}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Select Skill Level</option>
-                  <option>Beginner</option>
-                  <option>Intermediate</option>
-                  <option>Experienced</option>
-                  <option>Expert</option>
-                </select>
+  name="skill"
+  value={formData.skill}
+  onChange={handleChange}
+  required
+>
+  <option value="">Select Skill Level</option>
+  <option value="1">Beginner</option>
+  <option value="2">Intermediate</option>
+  <option value="3">Experienced</option>
+  <option value="4">Expert</option>
+</select>
+
               </div>
             </div>
           </div>
