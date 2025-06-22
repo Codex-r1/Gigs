@@ -17,48 +17,63 @@ const JobPostForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  try {
+    const token = localStorage.getItem("token");
+    console.log("Token being sent:", token); // Add this to debug
+    const employerId = localStorage.getItem('employerId');
+
+    const response = await fetch("http://localhost:5000/api/jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: formData.title,
+        description: formData.description,
+        location: `${formData.location}, ${formData.specific_location}`,
+        category: formData.category,
+        salary: formData.salary,
+        skill: formData.skill,
+        employerId: employerId
+      }),
+    });
+
+    // Safely parse as text first
+    const responseText = await response.text();
+
+    // Try to parse as JSON if possible
+    let data;
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch("http://localhost:5000/api/jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          location: `${formData.location}, ${formData.specific_location}`,
-          category: formData.category,
-          salary: formData.salary,
-          skill: formData.skill
-        })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("Job posted successfully!");
-        setFormData({
-          title: "",
-          category: "",
-          location: "",
-          specific_location: "",
-          description: "",
-          salary: "",
-          skill: ""
-        });
-      } else {
-        alert(data.error || "Something went wrong.");
-      }
-    } catch (error) {
-      console.error("Error submitting job:", error);
-      alert("Failed to post job. Please try again later.");
+      data = JSON.parse(responseText);
+    } catch (err) {
+      data = { error: responseText }; // fallback if not JSON
     }
-  };
+
+    if (response.ok) {
+      alert("Job posted successfully!");
+      setFormData({
+        title: "",
+        category: "",
+        location: "",
+        specific_location: "",
+        description: "",
+        salary: "",
+        skill: "",
+      });
+    } else {
+      alert(data.error || "Something went wrong.");
+    }
+  } catch (error) {
+    console.error("Error submitting job:", error.message);
+    alert("Failed to post job: " + error.message);
+  }
+};
+
+
 
   return (
     <div id="webcrumbs">

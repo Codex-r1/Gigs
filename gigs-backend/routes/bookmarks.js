@@ -5,15 +5,15 @@ const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/bookmarks
 router.post('/', authenticateToken, async (req, res) => {
-  const user_id = req.user.userId;
-  const { job_id } = req.body;
+  const userId = req.user.userId;
+  const { jobId } = req.body;
 
-  if (!job_id) return res.status(400).json({ error: "Job ID required" });
+  if (!jobId) return res.status(400).json({ error: "Job ID required" });
 
   try {
     const [rows] = await pool.query(
-      'INSERT IGNORE INTO bookmarks (user_id, job_id) VALUES (?, ?)',
-      [user_id, job_id]
+      'INSERT IGNORE INTO bookmarks (userId, jobId) VALUES (?, ?)',
+      [userId, jobId]
     );
     res.status(201).json({ message: "Job bookmarked" });
   } catch (err) {
@@ -27,10 +27,10 @@ router.get('/', authenticateToken, async (req, res) => {
 
   try {
     const [rows] = await pool.query(`
-      SELECT jobs.job_id, jobs.title, jobs.category, jobs.location
+      SELECT jobs.jobId, jobs.title, jobs.category, jobs.location
       FROM bookmarks
-      JOIN jobs ON bookmarks.job_id = jobs.job_id
-      WHERE bookmarks.user_id = ?
+      JOIN jobs ON bookmarks.jobId = jobs.jobId
+      WHERE bookmarks.userId = ?
       ORDER BY bookmarks.bookmarked_at DESC
     `, [userId]);
 

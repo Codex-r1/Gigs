@@ -7,7 +7,7 @@ const user = {
 };
 
 // Secret key used in your backend
-const secretKey = 'secretkey'; // Match this to the one in your middleware
+const secretKey = process.env.JWT_SECRET; // Match this to the one in your middleware
 
 // Sign the token
 const token = jwt.sign(user, secretKey, { expiresIn: '1h' });

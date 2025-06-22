@@ -5,7 +5,8 @@ const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/auth/profile
 router.get('/', authenticateToken, async (req, res) => {
-  const userId = req.user.id;
+  console.log('req:', req);
+  const userId = req.user.userId;
 
   try {
     const [rows] = await pool.query(

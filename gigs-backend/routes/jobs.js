@@ -14,7 +14,8 @@ router.post('/', authenticateToken, async (req, res) => {
     skill
   } = req.body;
 
-const employerId = req.user.id;
+const employerId = req.body.employerId;
+console.log('From frontend: ', authenticateToken);
 console.log('EMPLOYER ID (from token):', employerId);
 console.log("Request Body:", req.body);
 
@@ -28,17 +29,17 @@ console.log("Request Body:", req.body);
   const safeEmployerId = employerId ?? null;
 
   // Check for missing required values
-  if (
-    !safeTitle ||
-    !safeDescription ||
-    !safeLocation ||
-    !safeCategory ||
-    safeSalary === null ||
-    safeSkill === null ||
-    !safeEmployerId
-  ) {
-    return res.status(400).json({ error: "All required job fields must be filled." });
-  }
+  // if (
+  //   !safeTitle ||
+  //   !safeDescription ||
+  //   !safeLocation ||
+  //   !safeCategory ||
+  //   safeSalary !== null ||
+  //   safeSkill !== null ||
+  //   !safeEmployerId
+  // ) {
+  //   return res.status(400).json({ error: "All required job fields must be filled." });
+  // }
 
   try {
     const query = `

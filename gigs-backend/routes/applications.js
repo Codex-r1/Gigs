@@ -5,20 +5,19 @@ const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/applications
 router.post('/applications', authenticateToken, (req, res) => {
-  const applicant_id = req.user.userId;
-  const { job_id } = req.body;
+  const applicantId = req.user.userId;
+  const { jobId } = req.body;
 
-  if (!job_id) {
+  if (!jobId) {
     return res.status(400).json({ error: "Job ID is required" });
   }
 
   const query = `
-  INSERT INTO Applications (job_id, applicantId, status, appliedAt)
+  INSERT INTO Applications (jobId, applicantId, status, appliedAt)
   VALUES (?, ?, 'pending', NOW())
 `;
 
-
-  pool.query(query, [job_id, applicant_id], (err, result) => {
+  pool.query(query, [jobId, applicantId], (err, result) => {
     if (err) {
       console.error("Application error:", err);
       return res.status(500).json({ error: "Could not apply for job" });

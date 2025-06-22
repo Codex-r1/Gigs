@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
 const decoded = JSON.parse(atob(token.split('.')[1]));
    
 
-    res.json({ message: 'Login successful', token, role: user.role });
+    res.json({ message: 'Login successful', token, role: user.role, userId: user.userId });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ message: 'Login failed', error: err.message });

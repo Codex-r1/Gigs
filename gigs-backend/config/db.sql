@@ -52,4 +52,22 @@ CREATE TABLE Profile (
   FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE
 );
 
+CREATE TABLE Bookmarks (
+  bookmarkId INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  jobId INT NOT NULL,
+  bookmarkedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  -- Foreign keys
+  CONSTRAINT fk_user_bookmark FOREIGN KEY (userId)
+    REFERENCES Users(userId)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_job_bookmark FOREIGN KEY (jobId)
+    REFERENCES Jobs(jobId)
+    ON DELETE CASCADE,
+
+  -- Prevent duplicate bookmarks
+  UNIQUE KEY unique_user_job (userId, jobId)
+);
 

@@ -7,7 +7,7 @@ import "../styles/set.css";
   const [profile, setProfile] = useState({
   bio: "",
   skills: "",
-  location: ""
+  location: "",
 });
 
   const [passwords, setPasswords] = useState({
@@ -18,6 +18,7 @@ import "../styles/set.css";
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+    console.log("Token being sent:", token); 
 
   // Fetch profile info
   useEffect(() => {
