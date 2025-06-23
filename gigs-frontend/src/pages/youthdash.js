@@ -21,7 +21,8 @@ const [stats, setStats] = useState({
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         });
-        setJobs(res.data);
+        setApplications(res.data);
+        console.log("Applications fetched:", res.data);
       } catch (err) {
         console.error("Error fetching applications:", err);
       }
