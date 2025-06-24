@@ -4,47 +4,44 @@ const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/applications
-router.post('/applications', authenticateToken, (req, res) => {
-  const applicantId = req.user.userId;
+router.post('/', authenticateToken, async (req, res) => {
+  const applicantId = req.user.id;
   const { jobId } = req.body;
 
-  if (!jobId) {
-    return res.status(400).json({ error: "Job ID is required" });
+  if (!jobId || !applicantId) {
+    return res.status(400).json({ error: "Missing job or applicant ID" });
   }
 
-  const query = `
-  INSERT INTO Applications (jobId, applicantId, status, appliedAt)
-  VALUES (?, ?, 'pending', NOW())
-`;
-
-  pool.query(query, [jobId, applicantId], (err, result) => {
-    if (err) {
-      console.error("Application error:", err);
-      return res.status(500).json({ error: "Could not apply for job" });
-    }
-
-    res.status(201).json({ message: "Application submitted successfully" });
-  });
-});
-// routes/applications.js
-router.get('/applications', authenticateToken, (req, res) => {
-  const applicantId = req.user.userId;
-
-  const query = `
-    SELECT a.applicationId, a.status, a.appliedAt, j.title, j.description, j.location, j.category
-    FROM Applications a
-    JOIN Jobs j ON a.jobId = j.jobId
-    WHERE a.applicantId = ?
-    ORDER BY a.appliedAt DESC
-  `;
-
-  pool.query(query, [applicantId], (err, results) => {
-    if (err) {
-      console.error("Fetch applications error:", err);
-      return res.status(500).json({ error: "Failed to fetch applications" });
-    }
-    res.json(results);
-  });
+  try {
+    await pool.query(
+      "INSERT INTO Applications (jobId, applicantId, status, appliedAt) VALUES (?, ?, 'pending', NOW())",
+      [jobId, applicantId]
+    );
+    res.status(201).json({ message: 'Application submitted' });
+  } catch (err) {
+    console.error("Error applying to job:", err);
+    res.status(500).json({ error: 'Failed to apply' });
+  }
 });
 
+// GET /api/applications
+router.get('/', authenticateToken, async (req, res) => {
+  const applicantId = req.user.id; // or req.user.userId depending on your token payload
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT a.applicationId, a.status, a.appliedAt, 
+              j.title, j.location, j.category
+       FROM applications a
+       JOIN jobs j ON a.jobId = j.jobId
+       WHERE a.applicantId = ?`,
+      [applicantId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching applications:", err);
+    res.status(500).json({ error: "Could not retrieve applications" });
+  }
+});
 module.exports = router;

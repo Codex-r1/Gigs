@@ -1,46 +1,56 @@
-// routes/employer.js
 const express = require('express');
 const router = express.Router();
+const pool = require('../config/database');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
-const employerController = require('../controllers/employercont');
 
-// Job management
-router.post('/jobs', authenticateToken, authorizeRoles('employer'), employerController.postJob);
-router.delete('/jobs/:id', authenticateToken, authorizeRoles('employer'), employerController.deleteJob);
-
-// Applicant management
-router.get('/jobs/:id/applicants', authenticateToken, authorizeRoles('employer'), employerController.viewApplicants);
-router.put('/applications/:id/status', authenticateToken, authorizeRoles('employer'), employerController.updateApplicantStatus);
-
-// Profile
-router.put('/profile', authenticateToken, authorizeRoles('employer'), employerController.updateProfile);
-
-// Bookmarking
-router.post('/bookmark', authenticateToken, authorizeRoles('employer'), employerController.bookmarkApplicant);
-router.get('/bookmarks', authenticateToken, authorizeRoles('employer'), employerController.viewBookmarks);
-router.get('/dashboard', authenticateToken, authorizeRoles('employer'), async (req, res) => {
-  const employer_id = req.user.id;
-  try {
-    const [[{ active }]] = await db.query(
-      'SELECT COUNT(*) as active FROM jobs WHERE employer_id = ? AND status = "Open"', [employer_id]
-    );
-    const [[{ pending }]] = await db.query(
-      'SELECT COUNT(*) as pending FROM applications a JOIN jobs j ON a.job_id = j.job_id WHERE j.employer_id = ? AND a.status = "Pending"', [employer_id]
-    );
-    const [[{ total }]] = await db.query(
-      'SELECT COUNT(*) as total FROM applications a JOIN jobs j ON a.job_id = j.job_id WHERE j.employer_id = ?', [employer_id]
-    );
-
-    res.json({
-      active,
-      pending,
-      totalApplications: total
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error loading dashboard data' });
-  }
-});
-
-
-module.exports = router;
+// GET /api/employer/applicants
+router.get('/applicants', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+    const employerId = req.user.id;
+  
+    try {
+      const [rows] = await pool.query(
+        `SELECT 
+           a.applicationId,
+           a.status,
+           u.firstName,
+           u.lastName,
+           j.title AS jobTitle
+         FROM applications a
+         JOIN jobs j ON a.jobId = j.jobId
+         JOIN users u ON a.applicantId = u.userId
+         WHERE j.employerId = ?`,
+        [employerId]
+      );
+  
+      res.json(rows);
+    } catch (err) {
+      console.error("Error fetching applicants:", err);
+      res.status(500).json({ error: "Could not fetch applicants" });
+    }
+  });
+  // PUT /api/employer/update-status
+router.put('/update-status', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+    const { applicationId, status } = req.body;
+  
+    if (!["accepted", "rejected"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+  
+    try {
+      const [result] = await pool.query(
+        `UPDATE applications SET status = ? WHERE applicationId = ?`,
+        [status, applicationId]
+      );
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+  
+      res.json({ message: "Status updated successfully" });
+    } catch (err) {
+      console.error("Error updating application status:", err);
+      res.status(500).json({ error: "Could not update status" });
+    }
+  });
+  
+  module.exports = router;  

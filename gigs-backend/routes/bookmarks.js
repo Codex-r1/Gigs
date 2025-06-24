@@ -5,8 +5,10 @@ const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/bookmarks
 router.post('/', authenticateToken, async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id; // ✅ FIXED
   const { jobId } = req.body;
+
+  console.log("Bookmarking job ID:", jobId); // Debug check
 
   if (!jobId) return res.status(400).json({ error: "Job ID required" });
 
@@ -21,9 +23,10 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Failed to bookmark job" });
   }
 });
+
 // GET /api/bookmarks
 router.get('/', authenticateToken, async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id; // ✅ FIXED
 
   try {
     const [rows] = await pool.query(`
@@ -31,7 +34,7 @@ router.get('/', authenticateToken, async (req, res) => {
       FROM bookmarks
       JOIN jobs ON bookmarks.jobId = jobs.jobId
       WHERE bookmarks.userId = ?
-      ORDER BY bookmarks.bookmarked_at DESC
+      ORDER BY bookmarks.bookmarkedAt DESC
     `, [userId]);
 
     res.json(rows);

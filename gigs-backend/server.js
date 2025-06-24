@@ -1,15 +1,19 @@
-// server.js or app.js
-require('dotenv').config();
+// server.js
+require('dotenv').config({ path: __dirname + '/.env' }); // 
+
 const pool = require('./config/database');
 const express = require('express');
 const authRoutes = require('./routes/auth');
 const app = express();
 const cors = require("cors");
+
 app.use(cors({
-  origin: 'http://localhost:3000', // your React frontend
+  origin: 'http://localhost:3000', // React frontend
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// DB connection test
 (async () => {
   try {
     const connection = await pool.getConnection();
@@ -21,19 +25,22 @@ app.use(cors({
 })();
 
 app.use(express.json());
+
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/bookmarks', require('./routes/bookmarks'));
-const ratingsRoutes = require('./routes/ratings');
-app.use('/api/ratings', ratingsRoutes); // ✅
-const profileRoutes = require('./routes/profile');
-app.use('/api/auth/profile', profileRoutes);
-const statsRoutes = require('./routes/stats');
-app.use('/api/stats', statsRoutes);
-const applicantRoutes = require('./routes/applicants');
-app.use('/api/applicants', applicantRoutes);
+app.use('/api/ratings', require('./routes/ratings'));
+app.use('/api/auth/profile', require('./routes/profile'));
+app.use('/api/stats', require('./routes/stats'));
+const applicationsRoutes = require('./routes/applications');
+app.use('/api/applications', applicationsRoutes);
 const employerRoutes = require('./routes/employer');
-app.use('/api/employer', employerRoutes); 
-const employerStatsRoutes = require('./routes/employerStats');
-app.use('/api/employerStats', employerStatsRoutes);
+app.use('/api/employer', employerRoutes);
+
+app.use('api/bookmarks', require('./routes/bookmarks'));
+// Employer stats route
+app.use('/api/employerStats', require('./routes/employerStats'));
+
+// Start server
 app.listen(5000, () => console.log('Server running on port 5000'));

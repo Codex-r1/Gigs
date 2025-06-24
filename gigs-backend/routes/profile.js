@@ -5,12 +5,16 @@ const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/auth/profile
 router.get('/', authenticateToken, async (req, res) => {
-  console.log('req:', req);
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   try {
     const [rows] = await pool.query(
-      'SELECT bio, skills, location FROM profiles WHERE userId = ?',
+      `SELECT 
+         u.firstName, u.lastName, u.email,
+         p.bio, p.skills, p.location
+       FROM users u
+       LEFT JOIN profiles p ON u.userId = p.userId
+       WHERE u.userId = ?`,
       [userId]
     );
 
@@ -28,11 +32,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // PUT /api/auth/profile
 router.put('/', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-
-  // Destructure fields safely, fallback to null if undefined
-  const bio = req.body.bio ?? null;
-  const skills = req.body.skills ?? null;
-  const location = req.body.location ?? null;
+  const { bio = '', skills = '', location = '' } = req.body;
 
   try {
     const [result] = await pool.query(
@@ -43,12 +43,12 @@ router.put('/', authenticateToken, async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Profile not found' });
+      return res.status(404).json({ error: 'Profile not found for update' });
     }
 
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {
-    console.error('Error updating profile:', err);
+    console.error('Error updating profile:', err.message);
     res.status(500).json({ message: 'Error updating profile', error: err.message });
   }
 });

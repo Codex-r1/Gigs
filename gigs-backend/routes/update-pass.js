@@ -5,7 +5,7 @@ const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
 // PUT /api/auth/update-password
-router.put('/update-password', authenticateToken, async (req, res) => {
+router.put('/update-pass', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
@@ -16,7 +16,7 @@ router.put('/update-password', authenticateToken, async (req, res) => {
   try {
     // Get current hashed password
     const [users] = await pool.query(
-      'SELECT password FROM users WHERE userId = ?',
+      'SELECT password FROM users WHERE id = ?',
       [userId]
     );
 
@@ -34,7 +34,7 @@ router.put('/update-password', authenticateToken, async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     await pool.query(
-      'UPDATE users SET password = ? WHERE userId = ?',
+      'UPDATE users SET password = ? WHERE id = ?',
       [hashedNewPassword, userId]
     );
 
@@ -44,5 +44,5 @@ router.put('/update-password', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Server error while updating password.' });
   }
 });
-// Export the router
+
 module.exports = router;

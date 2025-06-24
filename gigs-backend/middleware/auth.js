@@ -11,16 +11,17 @@ function authenticateToken(req, res, next) {
 
   console.log("AUTH HEADER:", authHeader);
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  console.log("JWT_SECRET in middleware:", process.env.JWT_SECRET);
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error("JWT verification failed:", err.message);
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
 
-    req.user = user;
+    req.user = decoded; // decoded = { id, role }
 
-    console.log("Decoded token payload:", user);
-    console.log("Authenticated User ID:", user.userId);
+    console.log("Decoded token payload:", decoded);
+    console.log("Authenticated User ID:", decoded.id);
 
     next();
   });

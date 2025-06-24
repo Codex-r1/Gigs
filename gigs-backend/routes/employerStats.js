@@ -3,9 +3,9 @@ const router = express.Router();
 const pool = require('../config/database');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
-// GET /api/employer/stats
+// GET /api/employerStats/employer/stats
 router.get('/employer/stats', authenticateToken, authorizeRoles("employer"), async (req, res) => {
-  const employerId = req.user.userId;
+  const employerId = req.user.id; // or req.user.userId if that's what's in your token
 
   try {
     const [[{ activeListings }]] = await pool.execute(
@@ -21,7 +21,7 @@ router.get('/employer/stats', authenticateToken, authorizeRoles("employer"), asy
     const [[{ totalApplications }]] = await pool.execute(
       `SELECT COUNT(*) AS totalApplications
        FROM applications a
-       JOIN jobs j ON a.job_id = j.job_id
+       JOIN jobs j ON a.jobId = j.jobId
        WHERE j.employerId = ?`,
       [employerId]
     );

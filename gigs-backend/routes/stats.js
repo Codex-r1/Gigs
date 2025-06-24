@@ -4,8 +4,8 @@ const router = express.Router();
 const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
-// GET /api/stats/youth
-router.get('/youth', authenticateToken, async (req, res) => {
+// GET /api/stats/applicants
+router.get('/applicants', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
   try {
@@ -15,16 +15,11 @@ router.get('/youth', authenticateToken, async (req, res) => {
     );
 
     const [[{ bookmarks }]] = await pool.query(
-      'SELECT COUNT(*) AS bookmarks FROM bookmarks WHERE user_id = ?',
+      'SELECT COUNT(*) AS bookmarks FROM bookmarks WHERE userId = ?',
       [userId]
     );
 
-    const [[{ views }]] = await pool.query(
-      'SELECT views AS profileViews FROM profile_views WHERE user_id = ?',
-      [userId]
-    );
-
-    res.json({ applications, bookmarks, profileViews: views || 0 });
+    res.json({ applications, bookmarks });
   } catch (err) {
     console.error("Error fetching stats:", err);
     res.status(500).json({ error: 'Failed to load stats' });
