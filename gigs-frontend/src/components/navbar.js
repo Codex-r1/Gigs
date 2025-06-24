@@ -44,7 +44,6 @@ function Navbar() {
               {role === "employer" && (
                 <>
                   <li><Link to="/jobpost">Post a Job</Link></li>
-                  <li><Link to="/employer/profile">Profile</Link></li>
                   <li><Link to="/settings">Settings</Link></li>
                 </>
               )}

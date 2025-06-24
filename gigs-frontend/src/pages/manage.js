@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../styles/style.css';
 
 const Rate = ({ applicantId }) => {
   const [score, setScore] = useState('');

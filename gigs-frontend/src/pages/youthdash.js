@@ -3,7 +3,7 @@ import axios from "axios";
 import "../styles/style.css";
 
 const Youthdash = () => {
-  const [Jobs, setJobs] = useState([]);
+  //const [Jobs, setJobs] = useState([]);
   const [profile, setProfile] = useState(null);
 const [applications, setApplications] = useState([]);
 const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
@@ -30,7 +30,8 @@ const [stats, setStats] = useState({
 
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/me", {
+        const res = await axios.get("http://localhost:5000/api/auth/profile"
+          , {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -49,6 +50,8 @@ const [stats, setStats] = useState({
         },
       });
       setBookmarkedJobs(res.data);
+      console.log("Bookmarks fetched:", res.data);
+
     } catch (err) {
       console.error("Error fetching bookmarks:", err);
     }
@@ -56,7 +59,7 @@ const [stats, setStats] = useState({
 const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/stats/youth', {
+      const res = await axios.get('http://localhost:5000/api/stats/applicants', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -98,7 +101,7 @@ const fetchStats = async () => {
   <>
     <h2 className="text-xl font-bold text-slate-800">{profile.firstName}</h2>
     <h2 className="text-xl font-bold text-slate-800">{profile.lastName}</h2>
-    <p className="text-slate-600 mb-2"> Job Seeker</p>
+    <p className="text-slate-600 mb-2"> Applicant</p>
 
       <div className="flex items-center gap-3 text-slate-600">
         <span className="material-symbols-outlined text-lg">email</span>
@@ -131,17 +134,8 @@ const fetchStats = async () => {
                   <span className="material-symbols-outlined">work</span>
                   Applications
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
-                  <span className="material-symbols-outlined">bookmark</span>
-                  Bookmarks
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors">
-                  <span className="material-symbols-outlined">settings</span>
-                  Settings
-                </button>
               </div>
             </div>
-            
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-800">My Applications</h2>
@@ -197,7 +191,7 @@ const fetchStats = async () => {
           ) : (
             bookmarkedJobs.map((job) => (
               <div
-                key={job.job_id}
+                key={job.jobId}
                 className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 <span className="material-symbols-outlined text-yellow-500">bookmark</span>

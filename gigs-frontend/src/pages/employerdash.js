@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Chart from "react-apexcharts";
 import "../styles/stylez.css";
 
 const EmployerDash = () => {
@@ -9,21 +8,17 @@ const EmployerDash = () => {
     totalApplications: 0,
   });
 
-  const [chartData, setChartData] = useState({
-    categories: [],
-    data: [],
-  });
-
   const [applicants, setApplicants] = useState([]);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/employerdash", {
+        const res = await fetch("http://localhost:5000/api/employerStats/employer/stats", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        
         });
         const data = await res.json();
         setStats(data);
@@ -46,26 +41,9 @@ const EmployerDash = () => {
       }
     };
 
-    const fetchTrends = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/applications", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const result = await res.json();
-        setChartData({
-          categories: result.months,
-          data: result.values,
-        });
-      } catch (error) {
-        console.error("Failed to fetch analytics:", error);
-      }
-    };
-
+    
     fetchStats();
     fetchApplicants();
-    fetchTrends();
   }, [token]);
 
   const handleStatusUpdate = async (applicationId, status) => {
@@ -122,6 +100,7 @@ const EmployerDash = () => {
                 <span className="material-symbols-outlined mr-2">add_circle</span>
                 Post New Job
               </button>
+
               <button
                 className="bg-white hover:bg-gray-100 text-gray-800 px-6 py-3 border border-gray-200 rounded-lg shadow"
                 onClick={() => window.location.href = "/manage"}
@@ -185,25 +164,6 @@ const EmployerDash = () => {
                   ))}
                 </ul>
               )}
-            </div>
-          </section>
-
-          {/* Analytics */}
-          <section className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Analytics</h2>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-medium text-gray-700 mb-4">Application Trends</h3>
-              <Chart
-                options={{
-                  chart: { type: "line", zoom: { enabled: false } },
-                  xaxis: { categories: chartData.categories },
-                  yaxis: { title: { text: "Number of Applications" } },
-                  colors: ["#4F46E5"],
-                }}
-                series={[{ name: "Applications", data: chartData.data }]}
-                type="line"
-                height="300"
-              />
             </div>
           </section>
         </main>

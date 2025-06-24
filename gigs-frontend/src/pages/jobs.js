@@ -19,20 +19,21 @@ const Jobs = () => {
     }
   };
   const applyToJob = async (jobId) => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.post("http://localhost:5000/api/applications", { job_id: jobId }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    alert("Applied successfully!");
-  } catch (err) {
-    console.error("Failed to apply:", err.response?.data || err.message);
-    alert(err.response?.data?.error || "Failed to apply.");
-  }
-};
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:5000/api/applications", { jobId }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      alert("Applied successfully!");
+    } catch (err) {
+      console.error("Failed to apply:", err);
+      alert("Failed to apply");
+    }
+  };
+  
 
     return (
         <div id="webcrumbs">
@@ -168,7 +169,7 @@ const Jobs = () => {
   ) : (
     Jobs.map((job) => (
       <div
-        key={job.job_id}
+        key={job.jobId}
         className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition"
       >
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -182,14 +183,14 @@ const Jobs = () => {
           <div className="flex flex-col items-end gap-2">
             <button
   className="mt-4 px-4 py-2 bg-indigo-600 text-black rounded hover:bg-indigo-700"
-  onClick={() => applyToJob(job.job_id)}
+  onClick={() => applyToJob(job.jobId)}
 >
   Apply
 </button>
 
             <button
               className="text-sm text-slate-500 hover:text-slate-700"
-              onClick={() => alert(`Bookmarking job ID ${job.job_id}`)}
+              onClick={() => alert(`Bookmarking job ID ${job.jobId}`)}
             >
               Bookmark
             </button>
