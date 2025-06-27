@@ -15,10 +15,8 @@ router.put('/update-pass', authenticateToken, async (req, res) => {
 
   try {
     // Get current hashed password
-    const [users] = await pool.query(
-      'SELECT password FROM users WHERE id = ?',
-      [userId]
-    );
+    const [users] = await pool.query('SELECT password FROM users WHERE userId = ?', [userId]);
+
 
     if (users.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
@@ -34,7 +32,7 @@ router.put('/update-pass', authenticateToken, async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     await pool.query(
-      'UPDATE users SET password = ? WHERE id = ?',
+      'UPDATE users SET password = ? WHERE userId = ?',
       [hashedNewPassword, userId]
     );
 

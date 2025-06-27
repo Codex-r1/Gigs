@@ -28,28 +28,40 @@ router.get('/', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 // PUT /api/auth/profile
-router.put('/', authenticateToken, async (req, res) => {
+router.put('/settings', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const { bio = '', skills = '', location = '' } = req.body;
+  const { firstName, lastName, email, bio, location } = req.body;
 
+  if (!firstName || !lastName || !email) {
+    return res.status(400).json({ error: "First name, last name, and email are required." });
+  }
+
+  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      `UPDATE profiles
-       SET bio = ?, skills = ?, location = ?
-       WHERE userId = ?`,
-      [bio, skills, location, userId]
+    await conn.beginTransaction();
+
+    // Update Users table
+    await conn.query(
+      'UPDATE users SET firstName = ?, lastName = ?, email = ? WHERE userId = ?',
+      [firstName, lastName, email, userId]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Profile not found for update' });
-    }
+    // Update Profiles table
+    await conn.query(
+  'UPDATE profiles SET bio = ?, skills = ?, location = ? WHERE userId = ?',
+  [bio, skills, location, userId]
+);
 
-    res.json({ message: 'Profile updated successfully' });
-  } catch (err) {
-    console.error('Error updating profile:', err.message);
-    res.status(500).json({ message: 'Error updating profile', error: err.message });
+
+    await conn.commit();
+    res.json({ message: 'Profile updated successfully.' });
+  } catch (error) {
+    await conn.rollback();
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: 'Failed to update profile.' });
+  } finally {
+    conn.release();
   }
 });
 

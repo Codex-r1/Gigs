@@ -37,7 +37,16 @@ const applicationsRoutes = require('./routes/applications');
 app.use('/api/applications', applicationsRoutes);
 const employerRoutes = require('./routes/employer');
 app.use('/api/employer', employerRoutes);
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin', require('./routes/adminStats'));
+ const statsRoutes = require('./routes/stats');
+const adminApplicationsRoutes = require('./routes/adminApplications');
+const adminUsersRoutes = require('./routes/adminUsers');
 
+app.use('/api/stats', statsRoutes);
+app.use('/api', adminApplicationsRoutes);
+app.use('/api', adminUsersRoutes);
 app.use('api/bookmarks', require('./routes/bookmarks'));
 // Employer stats route
 app.use('/api/employerStats', require('./routes/employerStats'));

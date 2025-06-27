@@ -9,7 +9,7 @@ router.delete('/delete-acc', authenticateToken, async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      'DELETE FROM users WHERE id = ?',
+      'DELETE FROM users WHERE userId = ?',
       [userId]
       
     );

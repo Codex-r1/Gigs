@@ -43,5 +43,27 @@ router.get('/', authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Could not fetch bookmarked jobs" });
   }
 });
+// DELETE /api/bookmarks/:jobId
+// DELETE /api/bookmarks/:jobId
+router.delete('/:jobId', authenticateToken, async (req, res) => {
+  const jobId = req.params.jobId;
+  const userId = req.user.id; // This should match the JWT token
+
+  try {
+    const [result] = await pool.query(
+      'DELETE FROM Bookmarks WHERE jobId = ? AND userId = ?',
+      [jobId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Bookmark not found.' });
+    }
+
+    res.json({ message: 'Bookmark removed successfully.' });
+  } catch (err) {
+    console.error("Error deleting bookmark:", err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
 
 module.exports = router;
