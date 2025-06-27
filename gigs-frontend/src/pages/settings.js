@@ -73,7 +73,7 @@ const Settings = () => {
     }
 
     try {
-      await axios.put("http://localhost:5000/api/auth/update-password", {
+      await axios.put("http://localhost:5000/api/auth/update-pass", {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       }, {
@@ -93,7 +93,7 @@ const Settings = () => {
     if (!window.confirm("Are you sure? This action cannot be undone.")) return;
 
     try {
-      await axios.delete("http://localhost:5000/api/auth/delete-account", {
+      await axios.delete("http://localhost:5000/api/auth/delete-acc", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

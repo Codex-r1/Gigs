@@ -27,6 +27,8 @@ export default function Login() {
       navigate('/employerdash');
     } else if (res.data.role === 'admin') {
       navigate('/admindash');
+    }else {
+      alert('Unknown role');
     }
 
   } catch (err) {

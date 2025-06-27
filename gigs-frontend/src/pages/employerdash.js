@@ -18,7 +18,6 @@ const EmployerDash = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        
         });
         const data = await res.json();
         setStats(data);
@@ -41,7 +40,6 @@ const EmployerDash = () => {
       }
     };
 
-    
     fetchStats();
     fetchApplicants();
   }, [token]);
@@ -68,6 +66,24 @@ const EmployerDash = () => {
       console.error("Error updating status:", error);
     }
   };
+const handleRemoveApplicant = async (applicationId) => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/applications/${applicationId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to remove applicant");
+
+    setApplicants((prev) =>
+      prev.filter((app) => app.applicationId !== applicationId)
+    );
+  } catch (error) {
+    console.error("Error removing applicant:", error);
+  }
+};
 
   return (
     <div id="webcrumbs">
@@ -103,10 +119,10 @@ const EmployerDash = () => {
 
               <button
                 className="bg-white hover:bg-gray-100 text-gray-800 px-6 py-3 border border-gray-200 rounded-lg shadow"
-                onClick={() => window.location.href = "/manage"}
+                onClick={() => window.location.href = "/rateapplicants"}
               >
                 <span className="material-symbols-outlined mr-2">manage_accounts</span>
-                Manage Applicants
+                Rate Applicants
               </button>
             </div>
           </section>
@@ -125,11 +141,11 @@ const EmployerDash = () => {
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
                             <span className="text-blue-700 font-medium">
-                              {app.username?.charAt(0).toUpperCase()}
+                              {app.firstName?.charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-800">{app.username}</p>
+                            <p className="font-medium text-gray-800">{app.firstName} {app.lastName}</p>
                             <p className="text-sm text-gray-500">
                               Applied for <strong>{app.jobTitle}</strong>
                             </p>
@@ -158,6 +174,21 @@ const EmployerDash = () => {
                               </button>
                             </>
                           )}
+                          {app.status === "accepted" && (
+                            <button
+                              onClick={() => window.location.href = `/rateapplicants/${app.applicationId}`}
+                              className="text-blue-600 hover:underline text-sm ml-2"
+                            >
+                              Rate
+                            </button>
+                          )}
+                          <button
+  onClick={() => handleRemoveApplicant(app.applicationId)}
+  className="text-gray-400 hover:text-red-500 text-sm ml-2"
+>
+  Remove
+</button>
+
                         </div>
                       </div>
                     </li>
