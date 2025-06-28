@@ -16,6 +16,51 @@ const AdminDash = () => {
 
   const token = localStorage.getItem("token");
 
+  // DELETE user handler
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      alert(data.message);
+      setUsers(users.filter((u) => u.id !== id));
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      alert("Failed to delete user.");
+    }
+  };
+
+  // EDIT user handler
+  const handleEdit = async (user) => {
+    const newEmail = prompt("Enter new email:", user.email);
+    if (!newEmail) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...user,
+          email: newEmail,
+        }),
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      setUsers(users.map((u) => (u.id === user.id ? { ...u, email: newEmail } : u)));
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert("Failed to update user.");
+    }
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -53,9 +98,43 @@ const AdminDash = () => {
       }
     };
 
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/activity", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const activityMap = {};
+        data.forEach(item => {
+          activityMap[item.date] = item.count;
+        });
+
+        const days = [...Array(7)].map((_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - (6 - i));
+          const iso = date.toISOString().split("T")[0];
+          return iso;
+        });
+
+        const seriesData = days.map(date => activityMap[date] || 0);
+
+        setChartData({
+          options: {
+            chart: { id: "activity-chart" },
+            xaxis: { categories: days }
+          },
+          series: [{ name: "New Users", data: seriesData }]
+        });
+      } catch (err) {
+        console.error("Failed to fetch activity data", err);
+      }
+    };
+
     fetchStats();
     fetchRecentApplications();
     fetchUsers();
+    fetchActivity();
   }, [token]);
 
   return (
@@ -103,7 +182,7 @@ const AdminDash = () => {
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {users.map((user) => (
-                    <li key={user.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <li key={user.userId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center space-x-4">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-blue-600 font-medium">
@@ -125,13 +204,22 @@ const AdminDash = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200"
+                        >
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
-                        <button className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center hover:bg-yellow-200">
+                        <button
+                          className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center hover:bg-yellow-200"
+                          title="Block (not implemented)"
+                        >
                           <span className="material-symbols-outlined text-sm text-yellow-600">block</span>
                         </button>
-                        <button className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center hover:bg-red-200">
+                        <button
+                          onClick={() => handleDelete(user.userId)}
+                          className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center hover:bg-red-200"
+                        >
                           <span className="material-symbols-outlined text-sm text-red-600">delete</span>
                         </button>
                       </div>

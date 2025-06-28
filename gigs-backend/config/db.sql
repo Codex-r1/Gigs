@@ -4,7 +4,8 @@ CREATE TABLE Users (
     lastName VARCHAR(50) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('applicant', 'employer', 'admin') NOT NULL
+    role ENUM('applicant', 'employer', 'admin') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Jobs (
@@ -31,13 +32,13 @@ CREATE TABLE Applications (
   FOREIGN KEY (applicantId) REFERENCES Users(userId) ON DELETE CASCADE
 );
 
-CREATE  TABLE Ratings (
+CREATE TABLE Ratings (
   ratingId INT AUTO_INCREMENT PRIMARY KEY,
-  employerId INT  NOT NULL,  -- references Users(userId)
+  employerId INT NOT NULL,  -- references Users(userId)
   applicantId INT NOT NULL, -- references Users(userId)
-  score INT  NOT NULL (score IN (1,2,3,4,5)),
+  score INT NOT NULL CHECK (score IN (1,2,3,4,5)),
   feedback TEXT,
-  created at CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (employerId) REFERENCES Users(userId) ON DELETE CASCADE,
   FOREIGN KEY (applicantId) REFERENCES Users(userId) ON DELETE CASCADE
 );
@@ -45,10 +46,10 @@ CREATE  TABLE Ratings (
 CREATE TABLE Profile (
   profileId INT AUTO_INCREMENT PRIMARY KEY,
   userId INT NOT NULL,
-  bio TEXT NOT NULL CHECK (LENGTH(TRIM(bio) > 0))
-  skills TEXT NOT NULL CHECK (LENGTH(TRIM(skills) > 0))
+  bio TEXT NOT NULL CHECK (LENGTH(TRIM(bio)) > 0),
+  skills TEXT NOT NULL CHECK (LENGTH(TRIM(skills)) > 0),
   location VARCHAR(100) NOT NULL,
-  created at CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (userId) REFERENCES Users(userId) ON DELETE CASCADE
 );
 

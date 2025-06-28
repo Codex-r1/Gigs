@@ -14,7 +14,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
   try {
     await pool.query(
-      `INSERT INTO Ratings (employerId, applicantId, feedback)
+      `INSERT INTO ratings (employerId, applicantId, feedback)
        VALUES (?, ?, ?)`,
       [employerId, applicantId, feedback || null]
     );
