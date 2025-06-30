@@ -4,7 +4,7 @@ const pool = require("../config/database");
 const { authenticateToken } = require("../middleware/auth");
 const bcrypt = require("bcrypt");
 const { authorizeRoles } = require("../middleware/auth");
-// GET /api/profiless/me 
+// GET /api/profiles/me 
 router.get("/me", authenticateToken, async (req, res) => {
   const userId = req.user.id;
 

@@ -5,24 +5,26 @@ const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/bookmarks
 router.post('/', authenticateToken, async (req, res) => {
-  const userId = req.user.id; // ✅ FIXED
+  const userId = req.user.userId;
   const { jobId } = req.body;
 
-  console.log("Bookmarking job ID:", jobId); // Debug check
-
-  if (!jobId) return res.status(400).json({ error: "Job ID required" });
+  if (!jobId) return res.status(400).json({ error: "Job ID is required" });
 
   try {
-    const [rows] = await pool.query(
-      'INSERT IGNORE INTO bookmarks (userId, jobId) VALUES (?, ?)',
+    await pool.query(
+      'INSERT INTO bookmarks (userId, jobId) VALUES (?, ?)',
       [userId, jobId]
     );
-    res.status(201).json({ message: "Job bookmarked" });
+    res.json({ message: "Bookmarked successfully" });
   } catch (err) {
-    console.error("Bookmark error:", err);
-    res.status(500).json({ error: "Failed to bookmark job" });
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: "Already bookmarked" });
+    }
+    console.error("Error inserting bookmark:", err);
+    res.status(500).json({ error: "Failed to save bookmark" });
   }
 });
+
 
 // GET /api/bookmarks
 router.get('/', authenticateToken, async (req, res) => {
@@ -43,7 +45,6 @@ router.get('/', authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Could not fetch bookmarked jobs" });
   }
 });
-// DELETE /api/bookmarks/:jobId
 // DELETE /api/bookmarks/:jobId
 router.delete('/:jobId', authenticateToken, async (req, res) => {
   const jobId = req.params.jobId;

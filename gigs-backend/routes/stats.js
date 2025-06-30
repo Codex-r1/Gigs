@@ -6,7 +6,11 @@ const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/stats/applicants
 router.get('/applicants', authenticateToken, async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.userId || req.user.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID missing from token' });
+  }
 
   try {
     const [[{ applications }]] = await pool.query(

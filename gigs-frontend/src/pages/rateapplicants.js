@@ -6,11 +6,17 @@ const RateApplicant = () => {
   const { applicantId } = useParams();
   const [applicant, setApplicant] = useState(null);
   const [feedback, setFeedback] = useState("");
+  const [score, setScore] = useState("");
+
 
   useEffect(() => {
     const fetchApplicant = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/applicants/${applicantId}`);
+        const token = localStorage.getItem("token");
+const res = await axios.get(`http://localhost:5000/api/applicants/${applicantId}`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
         setApplicant(res.data);
       } catch (err) {
         console.error("Failed to fetch applicant:", err);
@@ -25,6 +31,7 @@ const RateApplicant = () => {
       const token = localStorage.getItem("token");
       await axios.post("http://localhost:5000/api/ratings", {
         applicantId,
+        score,
         feedback,
       }, {
         headers: { Authorization: `Bearer ${token}` },
@@ -42,6 +49,18 @@ const RateApplicant = () => {
         <>
           <p><strong>Name:</strong> {applicant.firstName} {applicant.lastName}</p>
           <p><strong>Email:</strong> {applicant.email}</p>
+          <label className="block mb-2 font-medium">Rating Score (1 to 5):</label>
+<select
+  className="w-full border p-2 rounded mb-4"
+  value={score}
+  onChange={(e) => setScore(parseInt(e.target.value))}
+>
+  <option value="">Select score</option>
+  {[1, 2, 3, 4, 5].map((s) => (
+    <option key={s} value={s}>{s}</option>
+  ))}
+</select>
+
           <textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}

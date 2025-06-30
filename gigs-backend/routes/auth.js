@@ -73,35 +73,37 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
-// ✅ GET PROFILE
+// routes/auth.js
 router.get('/profile', authenticateToken, async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id; 
+
 
   try {
-    const [rows] = await pool.execute(
-      `SELECT 
-         u.firstName, u.lastName, u.email,
-         p.bio, p.skills, p.location
+    const [rows] = await pool.query(
+      `SELECT u.firstName, u.lastName, u.email, p.bio, p.skills, p.location
        FROM Users u
-       LEFT JOIN Profiles p ON u.userId = p.userid
+       LEFT JOIN profiles p ON u.userId = p.userId
        WHERE u.userId = ?`,
       [userId]
     );
 
-    if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
 
     res.json(rows[0]);
   } catch (err) {
-    console.error('Error fetching profile:', err.message);
-    res.status(500).json({ message: 'Error fetching profile', error: err.message });
+    console.error("Profile fetch error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 
+
 // ✅ UPDATE PROFILE (Users + Profiles)
 router.put('/profile', authenticateToken, async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.id; 
+
   const {
     firstName = null,
     lastName = null,
@@ -114,7 +116,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
   try {
     // Update Users table
     await pool.execute(
-      `UPDATE Users SET firstName = ?, lastName = ?, email = ?, WHERE userId = ?`,
+      `UPDATE Users SET firstName = ?, lastName = ?, email = ? WHERE userId = ?`,
       [firstName, lastName, email, userId]
     );
 

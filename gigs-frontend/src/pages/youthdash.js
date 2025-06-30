@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/style.css";
 
+// Card to display individual application data and employer contact if accepted
 const ApplicationCard = ({ app }) => {
   const [contact, setContact] = useState(null);
   const [showContact, setShowContact] = useState(false);
-  const fetchContact = async () => {
-    console.log("App status:", app.status);
 
+  // Fetch employer contact for accepted applications
+  const fetchContact = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/api/applications/${app.applicationId}/employer-contact`,
@@ -25,7 +26,7 @@ const ApplicationCard = ({ app }) => {
   };
 
   return (
-    <div className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+    <div className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow w-full">
       <div className="flex justify-between items-start mb-2">
         <div>
           <h3 className="font-semibold text-slate-800">{app.title}</h3>
@@ -51,18 +52,19 @@ const ApplicationCard = ({ app }) => {
         Applied on: {new Date(app.appliedAt).toLocaleDateString()}
       </p>
 
+      {/* Show contact details only for accepted applications */}
       {app.status === "accepted" && (
         <div className="mt-4">
           {!showContact ? (
             <button
               onClick={fetchContact}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              className="px-4 py-2 bg-green-600 text-black rounded hover:bg-green-700 transition-colors"
             >
-              View Employer Contact
+              View Employer Contact Details
             </button>
           ) : contact ? (
             <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded">
-              <p className="text-slate-700"><strong>Name:</strong> {contact.name}</p>
+              <p className="text-slate-700"><strong>Name:</strong> {contact.firstName}</p>
               <p className="text-slate-700"><strong>Email:</strong> {contact.email}</p>
               <p className="text-slate-700"><strong>Phone:</strong> {contact.phone}</p>
               <p className="text-slate-700"><strong>Location:</strong> {contact.location}</p>
@@ -80,78 +82,98 @@ const Youthdash = () => {
   const [profile, setProfile] = useState(null);
   const [applications, setApplications] = useState([]);
   const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
-  const [stats, setStats] = useState({
-    applications: 0,
-    bookmarks: 0
-  });
-const unbookmarkJob = async (jobId) => {
-  try {
+  const [stats, setStats] = useState({ applications: 0, bookmarks: 0 });
+
+  // Unbookmark a job and update state
+  const unbookmarkJob = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/bookmarks/${jobId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBookmarkedJobs((prev) => prev.filter((job) => job.jobId !== jobId));
+    } catch (err) {
+      console.error("Failed to unbookmark job", err);
+    }
+  };
+
+  // Add job to bookmarks
+  const handleBookmark = async (jobId) => {
     const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/bookmarks/${jobId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      await axios.post("http://localhost:5000/api/bookmarks", { jobId }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert("Job bookmarked!");
+      fetchBookmarks();
+    } catch (err) {
+      console.error("Bookmark error:", err);
+      alert("Bookmarking failed");
+    }
+  };
 
-    setBookmarkedJobs((prev) => prev.filter((job) => job.jobId !== jobId));
-  } catch (err) {
-    console.error("Failed to unbookmark job", err);
-  }
-};
+  // Fetch applications submitted by the user
+  const fetchApplications = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/applications", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setApplications(res.data);
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    }
+  };
 
+  // Fetch user profile details
+  const fetchProfile = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setProfile(res.data);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+    }
+  };
+
+  // Fetch all bookmarked jobs
+  const fetchBookmarks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/bookmarks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setBookmarkedJobs(res.data);
+    } catch (err) {
+      console.error("Error fetching bookmarks:", err);
+    }
+  };
+
+  // Fetch quick stats (applications and bookmarks count)
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/stats/applicants", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setStats(res.data);
+    } catch (err) {
+      console.error("Failed to fetch stats", err);
+    }
+  };
+
+  // Fetch all required data on initial render
   useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/applications", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setApplications(res.data);
-      } catch (err) {
-        console.error("Error fetching applications:", err);
-      }
-    };
-
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/auth/profile", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setProfile(res.data);
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      }
-    };
-
-    const fetchBookmarks = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/bookmarks", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setBookmarkedJobs(res.data);
-      } catch (err) {
-        console.error("Error fetching bookmarks:", err);
-      }
-    };
-
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/stats/applicants", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setStats(res.data);
-      } catch (err) {
-        console.error("Failed to fetch stats", err);
-      }
-    };
-
     fetchStats();
     fetchBookmarks();
     fetchApplications();
@@ -160,8 +182,9 @@ const unbookmarkJob = async (jobId) => {
 
   return (
     <div id="webcrumbs">
-      <div className="w-full max-w-6xl mx-auto p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="w-full px-4 py-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-full">
+          {/* Left column for profile and stats */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
               <div className="text-center">
@@ -178,6 +201,10 @@ const unbookmarkJob = async (jobId) => {
                 <>
                   <h2 className="text-xl font-bold text-slate-800">{profile.firstName}</h2>
                   <h2 className="text-xl font-bold text-slate-800">{profile.lastName}</h2>
+                  <h2 className="text-slate-600 mb-2">{profile.location}</h2>
+                  <p className="text-slate-600 mb-2">{profile.bio || "No bio available"}</p>
+                  <p className="text-slate-600 mb-2">{profile.skills || "No skills listed"}</p>
+
                   <p className="text-slate-600 mb-2">Applicant</p>
                   <div className="flex items-center gap-3 text-slate-600">
                     <span className="material-symbols-outlined text-lg">email</span>
@@ -204,7 +231,9 @@ const unbookmarkJob = async (jobId) => {
             </div>
           </div>
 
+          {/* Right column for applications and bookmarks */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Applications Section */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200">
               <div className="p-6 border-b border-slate-200">
                 <div className="flex flex-wrap gap-4">
@@ -227,8 +256,9 @@ const unbookmarkJob = async (jobId) => {
               </div>
             </div>
 
+            {/* Bookmarked Jobs Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 w-full">
                 <h3 className="text-xl font-bold text-slate-800 mb-4">Bookmarked Jobs</h3>
                 <div className="space-y-3">
                   {bookmarkedJobs.length === 0 ? (
@@ -244,16 +274,12 @@ const unbookmarkJob = async (jobId) => {
                           <p className="font-medium text-slate-800">{job.title}</p>
                           <p className="text-sm text-slate-600">{job.location}</p>
                         </div>
-                        <button className="p-1 text-slate-400 hover:text-primary-500 transition-colors">
-                          <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                        </button>
                         <button
-  onClick={() => unbookmarkJob(job.jobId)}
-  className="text-sm text-red-500 hover:text-red-700"
->
-  Unbookmark
-</button>
-
+                          onClick={() => unbookmarkJob(job.jobId)}
+                          className="text-sm text-red-500 hover:text-red-700"
+                        >
+                          Unbookmark
+                        </button>
                       </div>
                     ))
                   )}
@@ -261,6 +287,7 @@ const unbookmarkJob = async (jobId) => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

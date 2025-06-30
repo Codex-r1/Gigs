@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/stylez.css";
 
 const EmployerDash = () => {
+   const navigate = useNavigate();
   const [stats, setStats] = useState({
     active: 0,
     pending: 0,
@@ -160,7 +162,7 @@ const EmployerDash = () => {
                             </>
                           )}
                           {app.status === "accepted" && (
-                            <button onClick={() => window.location.href = `/rateapplicants`} className="text-blue-600 hover:underline text-sm ml-2">Rate</button>
+                            <button onClick={() => navigate(`/rate/${app.applicantId}`)} className="text-blue-600 hover:underline text-sm ml-2">Rate</button>
                           )}
                           <button onClick={() => handleRemoveApplicant(app.applicationId)} className="text-gray-400 hover:text-red-500 text-sm ml-2">Remove</button>
                         </div>
