@@ -152,7 +152,7 @@ const Settings = () => {
                       type="text"
                       value={profile.skills}
                       onChange={(e) => setProfile({ ...profile, skills: e.target.value })}
-                      placeholder="e.g. JavaScript, React, Design"
+                      placeholder="e.g. Baking, Cooking, etc."
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     />
                   </div>

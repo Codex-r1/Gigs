@@ -62,8 +62,8 @@ router.get('/admin/activity', authenticateToken, authorizeRoles("admin"), async 
         COUNT(*) as count
       FROM jobs
       WHERE createdAt >= CURDATE() - INTERVAL 6 DAY
-      GROUP BY DATE(createdAt)
-      ORDER BY DATE(createdAt)
+      GROUP BY DATE(postedAt)
+      ORDER BY DATE(postedAt)
     `);
 
     res.json(rows); 
