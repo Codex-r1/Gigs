@@ -58,7 +58,7 @@ router.get('/admin/activity', authenticateToken, authorizeRoles("admin"), async 
   try {
     const [rows] = await pool.query(`
       SELECT 
-        DATE(createdAt) as date,
+        DATE(postedAt) as date,
         COUNT(*) as count
       FROM jobs
       WHERE createdAt >= CURDATE() - INTERVAL 6 DAY

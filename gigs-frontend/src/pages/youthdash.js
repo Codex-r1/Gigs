@@ -83,6 +83,20 @@ const Youthdash = () => {
   const [applications, setApplications] = useState([]);
   const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
   const [stats, setStats] = useState({ applications: 0, bookmarks: 0 });
+  const [ratings, setRatings] = useState([]);
+
+const fetchRatings = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/ratings/applicant", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    setRatings(res.data);
+  } catch (err) {
+    console.error("Failed to fetch ratings", err);
+  }
+};
 
   // Unbookmark a job and update state
   const unbookmarkJob = async (jobId) => {
@@ -94,23 +108,6 @@ const Youthdash = () => {
       setBookmarkedJobs((prev) => prev.filter((job) => job.jobId !== jobId));
     } catch (err) {
       console.error("Failed to unbookmark job", err);
-    }
-  };
-
-  // Add job to bookmarks
-  const handleBookmark = async (jobId) => {
-    const token = localStorage.getItem("token");
-    try {
-      await axios.post("http://localhost:5000/api/bookmarks", { jobId }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      alert("Job bookmarked!");
-      fetchBookmarks();
-    } catch (err) {
-      console.error("Bookmark error:", err);
-      alert("Bookmarking failed");
     }
   };
 
@@ -178,6 +175,7 @@ const Youthdash = () => {
     fetchBookmarks();
     fetchApplications();
     fetchProfile();
+    fetchRatings();
   }, []);
 
   return (
@@ -187,16 +185,6 @@ const Youthdash = () => {
           {/* Left column for profile and stats */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200">
-              <div className="text-center">
-                <div className="relative mb-4">
-                  <img
-                    src=" "
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full mx-auto border-4 border-primary-100 shadow-lg"
-                  />
-                  <div className="absolute -bottom-2 -right-2 bg-green-500 w-6 h-6 rounded-full border-2 border-white"></div>
-                </div>
-              </div>
               {profile ? (
                 <>
                   <h2 className="text-xl font-bold text-slate-800">{profile.firstName}</h2>
@@ -286,6 +274,22 @@ const Youthdash = () => {
                 </div>
               </div>
             </div>
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-200 w-full">
+  <h3 className="text-xl font-bold text-slate-800 mb-4">Ratings & Feedback</h3>
+  {ratings.length === 0 ? (
+    <p className="text-slate-500">You have not received any ratings yet.</p>
+  ) : (
+    <ul className="space-y-4">
+      {ratings.map((rating, index) => (
+        <li key={index} className="border p-4 rounded-lg bg-slate-50">
+          <p className="font-medium text-slate-800">Score: {rating.score} / 5</p>
+          <p className="text-slate-600 mt-2">{rating.feedback}</p>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
           </div>
 
         </div>

@@ -42,8 +42,8 @@ function AppLayout() {
         <Route path="/admindash" element={<AdminDash />} />
         <Route path="/employerdash" element={<EmployerDash />} />
         <Route path="/jobpost" element={<JobPostForm />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/rate/:applicantId" element={<RateApplicant />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/about" element={<About />} />
         <Route path="/FAQs" element={<ApplicantFAQs />} />
         {/* Add more routes as needed */}

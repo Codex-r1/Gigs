@@ -10,15 +10,17 @@ router.get('/applicants', authenticateToken, authorizeRoles("employer"), async (
     try {
       const [rows] = await pool.query(
         `SELECT 
-           a.applicationId,
-           a.status,
-           u.firstName,
-           u.lastName,
-           j.title AS jobTitle
-         FROM applications a
-         JOIN jobs j ON a.jobId = j.jobId
-         JOIN users u ON a.applicantId = u.userId
-         WHERE j.employerId = ?`,
+  a.applicationId,
+  a.applicantId,  
+  u.firstName,
+  u.lastName,
+  j.title AS jobTitle,
+  a.status
+FROM Applications a
+JOIN Jobs j ON a.jobId = j.jobId
+JOIN Users u ON a.applicantId = u.userId
+WHERE j.employerId = ?
+`,
         [employerId]
       );
   

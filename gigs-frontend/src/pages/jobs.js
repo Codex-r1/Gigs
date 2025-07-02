@@ -93,7 +93,23 @@ useEffect(() => {
       location: e.target.value,
     }));
   };
+// Add job to bookmarks
+  const handleBookmark = async (jobId) => {
+    const token = localStorage.getItem("token");
+    try {
+      console.log("Bookmarking jobId:", jobId);
 
+      await axios.post("http://localhost:5000/api/bookmarks", { jobId }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert("Job bookmarked!");
+    } catch (err) {
+      console.error("Bookmark error:", err);
+      alert("Bookmarking failed");
+    }
+  };
   return (
     <div id="webcrumbs">
       <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -187,11 +203,11 @@ useEffect(() => {
                             Apply
                           </button>
                           <button
-                            className="text-sm text-slate-500 hover:text-slate-700"
-                            onClick={() => alert(`Bookmarked job ID ${job.jobId}`)}
-                          >
-                            Bookmark
-                          </button>
+  onClick={() => handleBookmark(job.jobId)} // ✅ Pass jobId properly
+  className="text-sm text-blue-500 hover:text-blue-700"
+>
+  Bookmark
+</button>
                         </div>
                       )}
                     </div>

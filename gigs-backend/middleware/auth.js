@@ -11,7 +11,6 @@ function authenticateToken(req, res, next) {
 
   console.log("AUTH HEADER:", authHeader);
 
-  console.log("JWT_SECRET in middleware:", process.env.JWT_SECRET);
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.error("JWT verification failed:", err.message);

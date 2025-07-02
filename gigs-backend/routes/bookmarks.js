@@ -5,7 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/bookmarks
 router.post('/', authenticateToken, async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const { jobId } = req.body;
 
   if (!jobId) return res.status(400).json({ error: "Job ID is required" });
@@ -28,7 +28,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
 // GET /api/bookmarks
 router.get('/', authenticateToken, async (req, res) => {
-  const userId = req.user.id; // ✅ FIXED
+  const userId = req.user.id; 
 
   try {
     const [rows] = await pool.query(`
@@ -48,11 +48,11 @@ router.get('/', authenticateToken, async (req, res) => {
 // DELETE /api/bookmarks/:jobId
 router.delete('/:jobId', authenticateToken, async (req, res) => {
   const jobId = req.params.jobId;
-  const userId = req.user.id; // This should match the JWT token
+  const userId = req.user.id;
 
   try {
     const [result] = await pool.query(
-      'DELETE FROM Bookmarks WHERE jobId = ? AND userId = ?',
+      'DELETE FROM bookmarks WHERE jobId = ? AND userId = ?',
       [jobId, userId]
     );
 

@@ -35,13 +35,12 @@ app.use('/api/stats', require('./routes/stats'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/employer', require('./routes/employer'));
 app.use('/api/employerStats', require('./routes/employerStats'));
+app.use("/api/applicants", require("./routes/applicants"));
 
 // Admin routes
 const adminRoutes = require('./routes/admin');
 app.use('/api', adminRoutes);
 const profileRoutes = require('./routes/profile');
 app.use('/api/profile', profileRoutes);
-const applicantRoutes = require('./routes/applicants');
-app.use('/api/applicants', applicantRoutes);
 // Start server
 app.listen(5000, () => console.log('Server running on port 5000'));

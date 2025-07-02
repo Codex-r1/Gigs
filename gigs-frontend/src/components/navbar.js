@@ -27,7 +27,7 @@ function Navbar() {
               <i className="fa fa-bars" />
             </button>
             <Link className="navbar-brand" to="/">
-              <img src="" className="logo" alt="Logo" />
+              <img src="null" className="logo" alt="Logo" />
             </Link>
           </div>
 

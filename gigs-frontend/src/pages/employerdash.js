@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {useParams} from "react-router-dom";
 import "../styles/stylez.css";
 
 const EmployerDash = () => {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     active: 0,
     pending: 0,
@@ -105,11 +106,11 @@ const EmployerDash = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 mb-6">
               <div className="lg:col-span-4 bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg text-gray-700">Active Listings</h3>
-                <p className="text-3xl font-bold text-primary-600 mt-2">{stats.active}</p>
+                <p className="text-3xl font-bold text-primary-600 mt-2">{stats.activeListings}</p>
               </div>
               <div className="lg:col-span-4 bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg text-gray-700">Pending Approvals</h3>
-                <p className="text-3xl font-bold text-amber-600 mt-2">{stats.pending}</p>
+                <p className="text-3xl font-bold text-amber-600 mt-2">{stats.pendingApprovals}</p>
               </div>
               <div className="lg:col-span-4 bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg text-gray-700">Total Applications</h3>
@@ -117,11 +118,11 @@ const EmployerDash = () => {
               </div>
             </div>
             <div className="flex gap-4 justify-end">
-              <button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg shadow" onClick={() => window.location.href = "/jobpost"}>
-                <span className="material-symbols-outlined mr-2">add_circle</span>Post New Job
-              </button>
-              <button className="bg-white hover:bg-gray-100 text-gray-800 px-6 py-3 border border-gray-200 rounded-lg shadow" onClick={() => window.location.href = "/rateapplicants"}>
-                <span className="material-symbols-outlined mr-2">manage_accounts</span>Rate Applicants
+              <button
+                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg shadow"
+                onClick={() => window.location.href = "/jobpost"}
+              >
+                Post New Job
               </button>
             </div>
           </section>
@@ -134,41 +135,75 @@ const EmployerDash = () => {
                 <p className="p-4 text-gray-500">No one has applied yet.</p>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {applicants.map((app) => (
-                    <li key={app.applicationId} className="p-4 hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center cursor-pointer" onClick={() => fetchApplicantProfile(app.applicantId)}>
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <span className="text-blue-700 font-medium">
-                              {app.firstName?.charAt(0).toUpperCase()}
+                  {applicants.map((app) => {
+                    console.log("applicant entry:", app); // 👈 Debug log here
+                    const realApplicantId = app.applicantId || app.userId || app.id;
+
+                    return (
+                      <li key={app.applicationId} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          {/* Clicking the name/avatar shows modal */}
+                          <div
+                            className="flex items-center cursor-pointer"
+                            onClick={() => fetchApplicantProfile(realApplicantId)}
+                          >
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                              <span className="text-blue-700 font-medium">
+                                {app.firstName?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800">
+                                {app.firstName} {app.lastName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Applied for <strong>{app.jobTitle}</strong>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 items-center">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium
+                              ${app.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                                app.status === "accepted" ? "bg-green-100 text-green-700" :
+                                  app.status === "rejected" ? "bg-red-100 text-red-700" : ""}`}>
+                              {app.status}
                             </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-800">{app.firstName} {app.lastName}</p>
-                            <p className="text-sm text-gray-500">Applied for <strong>{app.jobTitle}</strong></p>
+
+                            {app.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleStatusUpdate(app.applicationId, "accepted")}
+                                  className="text-green-600 hover:underline text-sm"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleStatusUpdate(app.applicationId, "rejected")}
+                                  className="text-red-600 hover:underline text-sm"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+
+                            {app.status === "accepted" && (
+                              <button onClick={() => navigate(`/rate/${app.applicantId}`)}>
+  Rate
+</button>
+                            )}
+
+                            <button
+                              onClick={() => handleRemoveApplicant(app.applicationId)}
+                              className="text-gray-400 hover:text-red-500 text-sm ml-2"
+                            >
+                              Remove
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2 items-center">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium
-                            ${app.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                              app.status === "accepted" ? "bg-green-100 text-green-700" :
-                                app.status === "rejected" ? "bg-red-100 text-red-700" : ""}`}>
-                            {app.status}
-                          </span>
-                          {app.status === "pending" && (
-                            <>
-                              <button onClick={() => handleStatusUpdate(app.applicationId, "accepted")} className="text-green-600 hover:underline text-sm">Approve</button>
-                              <button onClick={() => handleStatusUpdate(app.applicationId, "rejected")} className="text-red-600 hover:underline text-sm">Reject</button>
-                            </>
-                          )}
-                          {app.status === "accepted" && (
-                            <button onClick={() => navigate(`/rate/${app.applicantId}`)} className="text-blue-600 hover:underline text-sm ml-2">Rate</button>
-                          )}
-                          <button onClick={() => handleRemoveApplicant(app.applicationId)} className="text-gray-400 hover:text-red-500 text-sm ml-2">Remove</button>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

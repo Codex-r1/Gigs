@@ -12,8 +12,8 @@ router.get("/:id", authenticateToken, async (req, res) => {
     const [rows] = await pool.query(
       `SELECT firstName, lastName, email, bio, skills, location 
        FROM profiles
-       JOIN Users ON users.userId = profiles.userId 
-       WHERE Users.userId = ?`,
+       JOIN users ON users.userId = profiles.userId 
+       WHERE users.userId = ?`,
       [applicantId]
     );
 
