@@ -9,7 +9,7 @@ const JobPostForm = () => {
     specific_location: "",
     description: "",
     salary: "",
-    skill: ""
+    skillsRequired: ""
   });
 
   const handleChange = (e) => {
@@ -17,63 +17,57 @@ const JobPostForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const token = localStorage.getItem("token");
-    console.log("Token being sent:", token); // Add this to debug
-    const employerId = localStorage.getItem('employerId');
-
-    const response = await fetch("http://localhost:5000/api/jobs", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title: formData.title,
-        description: formData.description,
-        location: `${formData.location}, ${formData.specific_location}`,
-        category: formData.category,
-        salary: formData.salary,
-        skill: formData.skill,
-        employerId: employerId
-      }),
-    });
-
-    // Safely parse as text first
-    const responseText = await response.text();
-
-    // Try to parse as JSON if possible
-    let data;
     try {
-      data = JSON.parse(responseText);
-    } catch (err) {
-      data = { error: responseText }; // fallback if not JSON
-    }
+      const token = localStorage.getItem("token");
+      const employerId = localStorage.getItem("employerId");
 
-    if (response.ok) {
-      alert("Job posted successfully!");
-      setFormData({
-        title: "",
-        category: "",
-        location: "",
-        specific_location: "",
-        description: "",
-        salary: "",
-        skill: "",
+      const response = await fetch("http://localhost:5000/api/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          location: `${formData.location}, ${formData.specific_location}`,
+          category: formData.category,
+          salary: formData.salary,
+          skillsRequired: formData.skillsRequired,
+          employerId: employerId
+        }),
       });
-    } else {
-      alert(data.error || "Something went wrong.");
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (err) {
+        data = { error: responseText };
+      }
+
+      if (response.ok) {
+        alert("Job posted successfully!");
+        setFormData({
+          title: "",
+          category: "",
+          location: "",
+          specific_location: "",
+          description: "",
+          salary: "",
+          skillsRequired: "",
+        });
+      } else {
+        alert(data.error || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Error submitting job:", error.message);
+      alert("Failed to post job: " + error.message);
     }
-  } catch (error) {
-    console.error("Error submitting job:", error.message);
-    alert("Failed to post job: " + error.message);
-  }
-};
-
-
+  };
 
   return (
     <div id="webcrumbs">
@@ -140,20 +134,16 @@ const handleSubmit = async (e) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Skill Level</label>
-                <select
-  name="skill"
-  value={formData.skill}
-  onChange={handleChange}
-  required
->
-  <option value="">Select Skill Level</option>
-  <option value="1">Beginner</option>
-  <option value="2">Intermediate</option>
-  <option value="3">Experienced</option>
-  <option value="4">Expert</option>
-</select>
-
+                <label className="block text-sm font-medium mb-2">Skills Required *</label>
+                <input
+                  type="text"
+                  name="skillsRequired"
+                  value={formData.skillsRequired}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="e.g. Cleaning, Time Management"
+                  required
+                />
               </div>
             </div>
           </div>
