@@ -26,12 +26,11 @@ router.get('/applicant/:id', authenticateToken, authorizeRoles("employer"), asyn
 
 // POST /api/ratings - Submit a rating
 router.post('/', authenticateToken, authorizeRoles("employer"), async (req, res) => {
-  console.log("req.user:", req.user); 
   const employerId = req.user.id;
-  const { applicantId, feedback } = req.body;
+  const { applicantId, feedback, score, recommended } = req.body;
 
-  if (!applicantId || !feedback) {
-    return res.status(400).json({ error: "Applicant ID and feedback are required" });
+  if (!applicantId || !feedback || score === undefined || recommended === null) {
+    return res.status(400).json({ error: "All fields (applicantId, feedback, score, recommended) are required" });
   }
 
   try {
@@ -45,8 +44,8 @@ router.post('/', authenticateToken, authorizeRoles("employer"), async (req, res)
     }
 
     await pool.query(
-      'INSERT INTO ratings (employerId, applicantId, feedback) VALUES (?, ?, ?)',
-      [employerId, applicantId, feedback]
+      'INSERT INTO ratings (employerId, applicantId, feedback, score, recommended) VALUES (?, ?, ?, ?, ?)',
+      [employerId, applicantId, feedback, score, recommended]
     );
 
     res.status(201).json({ message: "Rating submitted successfully" });
@@ -55,6 +54,7 @@ router.post('/', authenticateToken, authorizeRoles("employer"), async (req, res)
     res.status(500).json({ error: "Failed to submit rating" });
   }
 });
+
 
 // GET /api/ratings/applicant
 router.get("/applicant", authenticateToken, authorizeRoles("applicant"), async (req, res) => {

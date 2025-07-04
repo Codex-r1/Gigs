@@ -102,12 +102,12 @@ router.delete('/admin/users/:userId', authenticateToken, authorizeRoles("admin")
   }
 });
 // GET /api/admin/jobs - Fetch all jobs for Admin Dashboard
-router.get("/jobs", authenticateToken, authorizeRoles("admin"), async (req, res) => {
+router.get("/admin/jobs", authenticateToken, authorizeRoles("admin"), async (req, res) => {
   try {
     const [jobs] = await pool.query(`
-      SELECT jobId, title, location, status, createdAt
-      FROM Jobs
-      ORDER BY createdAt DESC
+      SELECT jobId, title, location, status, postedAt
+      FROM jobs
+      ORDER BY postedAt DESC
     `);
 
     res.json(jobs);
@@ -116,4 +116,18 @@ router.get("/jobs", authenticateToken, authorizeRoles("admin"), async (req, res)
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
+// DELETE /api/admin/jobs/:jobId
+router.delete("/jobs/:jobId", authenticateToken, authorizeRoles("admin"), async (req, res) => {
+  const { jobId } = req.params;
+  try {
+    const [result] = await pool.query("DELETE FROM jobs WHERE id = ?", [jobId]);
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Job not found" });
+    res.json({ message: "Job deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 module.exports = router;

@@ -9,7 +9,7 @@ router.get('/applicants', authenticateToken, authorizeRoles("employer"), async (
   try {
     const [rows] = await pool.query(`
       SELECT 
-        a.applicationId, a.status, a.appliedAt, a.message,
+        a.applicationId, a.status, a.appliedAt, a.message, a.jobId,
         j.skillsRequired,
         u.userId AS applicantId, u.firstName, u.lastName, u.email,
         j.title AS jobTitle,

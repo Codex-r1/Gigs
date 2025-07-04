@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
+import axios from "axios";
 
 const  AdminDash = () => {
   const [stats, setStats] = useState({ users: 0, jobs: 0, applications: 0 });
@@ -12,7 +13,6 @@ const  AdminDash = () => {
       chart: { id: "activity-chart" },
       xaxis: { categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }
     },
-    series: [{ name: "Users", data: [30, 45, 20, 60, 35, 50, 25] }]
   });
 
   // Get token from localStorage (if available in environment)
@@ -71,23 +71,74 @@ const  AdminDash = () => {
     }
   };
 
-  // Block user handler (placeholder)
-  const handleBlockUser = (userId) => {
-    alert(`Block user functionality not implemented yet for user ${userId}`);
-  };
+  const handleDeleteJob = async (jobId) => {
+  if (!window.confirm("Are you sure you want to delete this job?")) return;
 
-  // Delete job handler (placeholder)
-  const handleDeleteJob = (jobId) => {
-    if (!window.confirm("Are you sure you want to delete this job?")) return;
-    alert(`Delete job functionality not implemented yet for job ${jobId}`);
-  };
+  try {
+    const token = localStorage.getItem("token");
+    await axios.delete(`http://localhost:5000/api/admin/jobs/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    alert("Job deleted successfully.");
+    
+    // Optional: refresh job list after delete
+    fetchJobs(); // <-- make sure you have this function defined
 
-  // Delete application handler (placeholder)
-  const handleDeleteApplication = (appId) => {
-    if (!window.confirm("Are you sure you want to delete this application?")) return;
-    alert(`Delete application functionality not implemented yet for application ${appId}`);
-  };
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    alert("Failed to delete job. Please try again.");
+  }
+};
+const fetchJobs = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/jobs", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setRecentJobs(data);
+  } catch (err) {
+    console.error("Failed to fetch jobs", err);
+  }
+};
+const handleDeleteApplication = async (applicationId) => {
+  if (!window.confirm("Are you sure you want to delete this application?")) return;
 
+  try {
+    await axios.delete(`http://localhost:5000/api/admin/applications/${applicationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    alert("Application deleted.");
+    setRecentApps(recentApps.filter((app) => app.id !== applicationId));
+  } catch (error) {
+    console.error("Error deleting application:", error);
+    alert("Failed to delete application.");
+  }
+};
+const handleBlockUser = async (userId) => {
+  if (!window.confirm("Block this user?")) return;
+
+  try {
+    const res = await axios.put(`http://localhost:5000/api/admin/users/block/${userId}`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    alert(res.data.message || "User blocked.");
+    fetchUsers(); // refresh user list if needed
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    alert("Failed to block user.");
+  }
+};
+ const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -115,62 +166,46 @@ const  AdminDash = () => {
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/admin/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Failed to fetch users", err);
-      }
-    };
+   const fetchActivity = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/activity", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
 
-    const fetchActivity = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/admin/activity", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
+    if (!Array.isArray(data)) {
+      console.error("Unexpected activity data:", data);
+      return;
+    }
 
-        const activityMap = {};
-        data.forEach(item => {
-          activityMap[item.date] = item.count;
-        });
+    const activityMap = {};
+    data.forEach(item => {
+      activityMap[item.date] = item.count;
+    });
 
-        const days = [...Array(7)].map((_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
-          const iso = date.toISOString().split("T")[0];
-          return iso;
-        });
+    const days = [...Array(7)].map((_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      const iso = date.toISOString().split("T")[0];
+      return iso;
+    });
 
-        const seriesData = days.map(date => activityMap[date] || 0);
+    const seriesData = days.map(date => activityMap[date] || 0);
 
-        setChartData({
-          options: {
-            chart: { id: "activity-chart" },
-            xaxis: { categories: days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })) }
-          },
-          series: [{ name: "New Users", data: seriesData }]
-        });
-      } catch (err) {
-        console.error("Failed to fetch activity data", err);
-        // Keep default chart data
-      }
-    };
-const fetchJobs = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/admin/jobs", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setRecentJobs(data);
-      } catch (err) {
-        console.error("Failed to fetch jobs", err);
-      }
-    };
+    setChartData({
+      options: {
+        chart: { id: "activity-chart" },
+        xaxis: { categories: days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })) }
+      },
+      series: [{ name: "New Users", data: seriesData }]
+    });
+
+  } catch (err) {
+    console.error("Failed to fetch activity data", err);
+  }
+};
+
+
     
     fetchJobs();
     fetchStats();
@@ -346,9 +381,7 @@ const fetchJobs = async () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                           <button 
-                            onClick={() => handleDeleteJob(job.id)}
-                            className="text-gray-500 hover:text-red-600 transition-colors"
-                          >
+                            onClick={() => handleDeleteJob(job.jobId)} className="text-red-600 hover:text-red-800">
                             <span className="material-symbols-outlined">delete</span>
                           </button>
                         </td>

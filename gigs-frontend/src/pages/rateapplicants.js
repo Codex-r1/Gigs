@@ -45,13 +45,21 @@ const RateApplicant = () => {
     alert("You're not logged in. Please log in again.");
     return;
   }
+console.log("Submitting rating:", {
+  applicantId,
+  feedback,
+  score,
+  recommended
+});
 
   try {
     await axios.post(
       "http://localhost:5000/api/ratings",
       {
-        applicantId,
-        feedback: `${feedback}\n\nScore: ${score}/5\nRecommendation: ${recommended ? "Yes" : "No"}`
+        applicantId: applicantId,
+        feedback: feedback,
+        score: score,
+        recommended: recommended,
       },
       {
         headers: {
@@ -118,7 +126,7 @@ const RateApplicant = () => {
               <span className="text-2xl">👎</span>
               <span className={`font-medium ${
                 recommended === false ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'
-              }`}>Not Recommend</span>
+              }`}>Do Not Recommend</span>
             </button>
           </div>
 

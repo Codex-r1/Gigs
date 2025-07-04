@@ -70,7 +70,7 @@ const EmployerDash = () => {
 
         const fetchJobs = async () => {
             try {
-                const res = await apiCall("http://localhost:5000/api/jobs/employer");
+                const res = await apiCall("http://localhost:5000/api/jobs");
                 const data = await res.json();
                 setJobs(data);
             } catch (err) {
@@ -84,17 +84,24 @@ const EmployerDash = () => {
         fetchTrendData();
     }, [token]);
 
-    const fetchApplicantProfile = async (applicant) => {
-        try {
-            const res = await apiCall(`http://localhost:5000/api/applicants/${applicant.applicantId}`);
-            const data = await res.json();
-            setSelectedApplicant(data);
-        } catch (err) {
-            console.error("Failed to fetch applicant profile:", err);
-        }
-    };
+const fetchApplicantProfile = async (app) => {
+  const applicantId = app.applicantId;
+  const jobId = app.jobId; // Make sure this exists in your applicants data
+console.log("Fetching applicant profile for:", applicantId, "Job ID:", jobId);
+  if (!applicantId || !jobId) {
+    console.error("Missing applicantId or jobId");
+    return;
+  }
 
-    const handleStatusUpdate = async (applicationId, status, reviewComment = "") => {
+  try {
+    const res = await apiCall(`http://localhost:5000/api/applicants/applicant-details/${applicantId}/${jobId}`);
+    const data = await res.json();
+    setSelectedApplicant(data);
+  } catch (err) {
+    console.error("Failed to fetch detailed applicant info:", err);
+  }
+};
+const handleStatusUpdate = async (applicationId, status, reviewComment = "") => {
         try {
             const res = await apiCall("http://localhost:5000/api/employer/update-status", {
                 method: "PUT",
@@ -216,8 +223,6 @@ const EmployerDash = () => {
             </button>
         );
     };
-// Before the return in your component
-console.log("Applicants data:", applicants);
     return (
         <div id="webcrumbs">
             <div className="w-full min-h-screen bg-gray-50 p-6">
@@ -451,7 +456,7 @@ console.log("Applicants data:", applicants);
                                                     <td className="p-4">
                                                         <div 
                                                             className="flex items-center space-x-3 cursor-pointer"
-                                                            onClick={() => fetchApplicantProfile(realApplicantId)}
+                                                            onClick={() => fetchApplicantProfile(app)}
                                                         >
                                                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                                                 <span className="text-blue-600 font-medium">
@@ -481,7 +486,7 @@ console.log("Applicants data:", applicants);
                                                     <td className="p-4">
                                                         <div className="flex items-center space-x-2">
                                                             <button 
-                                                                onClick={() => fetchApplicantProfile(realApplicantId)}
+                                                                onClick={() => fetchApplicantProfile(app)}
                                                                 className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200"
                                                             >
                                                                 <span className="material-symbols-outlined">visibility</span>
@@ -562,31 +567,43 @@ console.log("Applicants data:", applicants);
                 </div>
 
                 {/* Profile Viewer Modal */}
-                {selectedApplicant && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
-                            <button
-                                className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl"
-                                onClick={() => setSelectedApplicant(null)}
-                            >
-                                &times;
-                            </button>
-                            <h3 className="text-xl font-bold mb-4">
-                                {selectedApplicant.firstName} {selectedApplicant.lastName}
-                            </h3>
-                            <div className="space-y-3">
-                                <p><strong>Email:</strong> {selectedApplicant.email}</p>
-                                <p><strong>Bio:</strong> {selectedApplicant.bio || "N/A"}</p>
-                                <p><strong>Skill Match:</strong> {selectedApplicant.skillMatchPercent || 0}%</p>
-                                <p><strong>Location:</strong> {selectedApplicant.location || "N/A"}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
+               {selectedApplicant && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl"
+        onClick={() => setSelectedApplicant(null)}
+      >
+        &times;
+      </button>
+      <h3 className="text-xl font-bold mb-4">
+        {selectedApplicant.firstName} {selectedApplicant.lastName}
+      </h3>
+      <div className="space-y-3">
+        <p><strong>Email:</strong> {selectedApplicant.email}</p>
+        <p><strong>Bio:</strong> {selectedApplicant.bio || "N/A"}</p>
+        <p><strong>Skill Match:</strong> {selectedApplicant.skillMatchPercent || 0}%</p>
+        <p><strong>Location:</strong> {selectedApplicant.location || "N/A"}</p>
+        <p><strong>Motivation:</strong> {selectedApplicant.motivationMessage || "No message provided"}</p>
+        <p><strong>Rating:</strong> {selectedApplicant.rating !== null ? `${selectedApplicant.rating}/5` : "Not rated yet"}</p>
+
+{selectedApplicant.feedback && (
+  <p><strong>Feedback:</strong> {selectedApplicant.feedback}</p>
+)}
+
+{selectedApplicant.recommended !== null && (
+  <p><strong>Recommended:</strong> {selectedApplicant.recommended ? "Yes 👍" : "No 👎"}</p>
+)}
+
+      </div>
+    </div>
+  </div>
+)}
+
                  {/* Rejection Modal - Now with proper z-index and backdrop */}
                 {showRejectModal && (
                     <div className="fixed inset-0 z-[50v] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-                        <div className="bg-white rounded-xl p-6 shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100">
+                        <div className="bg-white rounded-xl p-6 shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-80">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-semibold text-gray-800">Reject Application</h2>
                                 <button
