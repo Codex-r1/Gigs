@@ -3,29 +3,29 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/database");
 const { authenticateToken } = require("../middleware/auth");
-
-// GET /api/applicants/:id
-router.get("/:id", authenticateToken, async (req, res) => {
-  const applicantId = req.params.id;
-
+const { authorizeRoles } = require("../middleware/auth");
+// GET /api/applicants/:id - Get single applicant profile
+router.get('/:id', async (req, res) => {
+  if (!req.params.id || req.params.id === 'undefined') {
+    return res.status(400).json({ error: 'Applicant ID is required' });
+  }
+  const id = { userId: req.params.id };
   try {
-    const [rows] = await pool.query(
-      `SELECT firstName, lastName, email, bio, skills, location 
-       FROM profiles
-       JOIN users ON users.userId = profiles.userId 
-       WHERE users.userId = ?`,
-      [applicantId]
-    );
+    const [rows] = await pool.query(`
+      SELECT u.userId, u.firstName, u.lastName, u.email, p.bio
+      FROM users u
+      JOIN profiles p ON u.userId = p.userId
+      WHERE u.userId = ?
+    `, [id]);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Applicant not found" });
-    }
+    if (rows.length === 0) return res.status(404).json({ error: "Applicant not found" });
 
     res.json(rows[0]);
   } catch (err) {
-    console.error("Error fetching applicant profile:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error fetching applicant:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 module.exports = router;

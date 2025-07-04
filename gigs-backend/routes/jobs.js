@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/auth');
 
 // POST /api/jobs
 router.post('/', authenticateToken, async (req, res) => {
@@ -65,6 +66,26 @@ router.get('/employer/applicants', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error fetching applicants (GET /api/employer/applicants):", err);
     res.status(500).json({ error: "Server error while retrieving applicants: " + err.message });
+  }
+});
+// PATCH /api/jobs/:jobId/close - Close a job post
+router.patch('/:jobId/close', authenticateToken, authorizeRoles('employer'), async (req, res) => {
+  const { jobId } = req.params;
+  const employerId = req.user.id;
+
+  try {
+    // Optional: verify that this job belongs to the employer
+    const [job] = await pool.query('SELECT * FROM jobs WHERE id = ? AND employerId = ?', [jobId, employerId]);
+
+    if (job.length === 0) {
+      return res.status(404).json({ error: "Job not found or access denied" });
+    }
+
+    await pool.query('UPDATE jobs SET status = "closed" WHERE id = ?', [jobId]);
+    res.json({ message: "Job closed successfully" });
+  } catch (err) {
+    console.error("Error closing job:", err);
+    res.status(500).json({ error: "Failed to close job" });
   }
 });
 

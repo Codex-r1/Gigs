@@ -790,3 +790,47 @@ video {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
+/* Add these to your CSS */
+#webcrumbs .fixed {
+  position: fixed;
+}
+#webcrumbs .inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+#webcrumbs .backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#webcrumbs .z-50 {
+  z-index: 50;
+}
+/* For smooth modal transitions */
+#webcrumbs .transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+#webcrumbs .duration-300 {
+  transition-duration: 300ms;
+}
+#webcrumbs .ease-out {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+#webcrumbs .scale-100 {
+  transform: scale(1);
+}
+#webcrumbs .scale-95 {
+  transform: scale(0.95);
+}
+#webcrumbs .opacity-100 {
+  opacity: 1;
+}
+#webcrumbs .opacity-0 {
+  opacity: 0;
+}
+#webcrumbs .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}

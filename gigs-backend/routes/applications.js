@@ -32,6 +32,10 @@ router.post('/', authenticateToken, authorizeRoles("applicant"), async (req, res
     console.error("Application error:", err);
     res.status(500).json({ error: "Failed to apply for job" });
   }
+if (job.status === 'closed') {
+  return res.status(400).json({ error: "This job is closed and no longer accepting applications." });
+}
+
 });
 
 // GET /api/applications
@@ -40,11 +44,13 @@ router.get('/', authenticateToken, async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      `SELECT a.applicationId, a.status, a.appliedAt, 
-              j.title, j.location, j.category
-       FROM applications a
-       JOIN jobs j ON a.jobId = j.jobId
-       WHERE a.applicantId = ?`,
+      `SELECT Applications.applicationId, Applications.status, Applications.reviewComment, Applications.appliedAt, 
+       Jobs.title, Jobs.location, Jobs.salary
+FROM Applications
+JOIN Jobs ON Applications.jobId = Jobs.jobId
+WHERE Applications.applicantId = ?;
+;
+`,
       [applicantId]
     );
 

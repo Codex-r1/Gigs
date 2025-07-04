@@ -20,13 +20,24 @@ const EmployerDash = () => {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const token = localStorage.getItem("token");
     const [trendData, setTrendData] = useState([]);
+    const [jobs, setJobs] = useState([]);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [selectedApplicationId, setSelectedApplicationId] = useState(null);
+    const [rejectionReason, setRejectionReason] = useState("");
+
+    // API helper function
+    const apiCall = async (url, options = {}) => {
+        const defaultOptions = {
+            headers: { Authorization: `Bearer ${token}` },
+            ...options
+        };
+        return fetch(url, defaultOptions);
+    };
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/employerStats/employer/stats", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                const res = await apiCall("http://localhost:5000/api/employerStats/employer/stats");
                 const data = await res.json();
                 setStats(prevStats => ({
                     ...prevStats,
@@ -36,22 +47,20 @@ const EmployerDash = () => {
                 console.error("Error fetching dashboard stats", err);
             }
         };
-const fetchTrendData = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/employerStats/trends", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setTrendData(data);
-    } catch (error) {
-      console.error("Error fetching trend data:", error);
-    }
-  };
+
+        const fetchTrendData = async () => {
+            try {
+                const res = await apiCall("http://localhost:5000/api/employerStats/trends");
+                const data = await res.json();
+                setTrendData(data);
+            } catch (error) {
+                console.error("Error fetching trend data:", error);
+            }
+        };
+
         const fetchApplicants = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/employer/applicants", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                const res = await apiCall("http://localhost:5000/api/employer/applicants");
                 const data = await res.json();
                 setApplicants(data);
             } catch (error) {
@@ -59,38 +68,48 @@ const fetchTrendData = async () => {
             }
         };
 
+        const fetchJobs = async () => {
+            try {
+                const res = await apiCall("http://localhost:5000/api/jobs/employer");
+                const data = await res.json();
+                setJobs(data);
+            } catch (err) {
+                console.error("Error fetching employer jobs:", err);
+            }
+        };
+
+        fetchJobs();
         fetchStats();
         fetchApplicants();
         fetchTrendData();
     }, [token]);
 
-  const fetchApplicantProfile = async (applicant) => {
-  try {
-    const res = await fetch(`http://localhost:5000/api/applicants/${applicant.applicantId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setSelectedApplicant(data);
-  } catch (err) {
-    console.error("Failed to fetch applicant profile:", err);
-  }
-};
-    const handleStatusUpdate = async (applicationId, status) => {
+    const fetchApplicantProfile = async (applicant) => {
         try {
-            const res = await fetch("http://localhost:5000/api/employer/update-status", {
+            const res = await apiCall(`http://localhost:5000/api/applicants/${applicant.applicantId}`);
+            const data = await res.json();
+            setSelectedApplicant(data);
+        } catch (err) {
+            console.error("Failed to fetch applicant profile:", err);
+        }
+    };
+
+    const handleStatusUpdate = async (applicationId, status, reviewComment = "") => {
+        try {
+            const res = await apiCall("http://localhost:5000/api/employer/update-status", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ applicationId, status }),
+                body: JSON.stringify({ applicationId, status, reviewComment }),
             });
 
             if (!res.ok) throw new Error("Failed to update status");
 
             setApplicants((prev) =>
                 prev.map((app) =>
-                    app.applicationId === applicationId ? { ...app, status } : app
+                    app.applicationId === applicationId ? { ...app, status, reviewComment } : app
                 )
             );
         } catch (error) {
@@ -98,38 +117,38 @@ const fetchTrendData = async () => {
         }
     };
 
-    const handleRemoveApplicant = async (applicationId) => {
-        try {
-            const res = await fetch(`http://localhost:5000/api/applications/${applicationId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (!res.ok) throw new Error("Failed to remove applicant");
-
-            setApplicants((prev) =>
-                prev.filter((app) => app.applicationId !== applicationId)
-            );
-        } catch (error) {
-            console.error("Error removing applicant:", error);
-        }
-    };
-
     const getStatusDisplay = (status) => {
-        switch (status) {
-            case "pending":
-                return { class: "bg-yellow-100 text-yellow-800", text: "Under Review" };
-            case "accepted":
-                return { class: "bg-green-100 text-green-800", text: "Hired" };
-            case "rejected":
-                return { class: "bg-red-100 text-red-800", text: "Rejected" };
-            case "interviewed":
-                return { class: "bg-blue-100 text-blue-800", text: "Interviewed" };
-            default:
-                return { class: "bg-orange-100 text-orange-800", text: "New" };
-        }
+        const statusMap = {
+            "pending": { class: "bg-yellow-100 text-yellow-800", text: "Under Review" },
+            "accepted": { class: "bg-green-100 text-green-800", text: "Hired" },
+            "rejected": { class: "bg-red-100 text-red-800", text: "Rejected" },
+            "interviewed": { class: "bg-blue-100 text-blue-800", text: "Interviewed" },
+            "default": { class: "bg-orange-100 text-orange-800", text: "New" }
+        };
+        return statusMap[status] || statusMap.default;
     };
 
+    const closeJob = async (jobId) => {
+        if (!window.confirm("Are you sure you want to close this job?")) return;
+        try {
+            const res = await apiCall(`http://localhost:5000/api/jobs/${jobId}/close`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!res.ok) throw new Error("Failed to close job");
+            setJobs((prevJobs) => prevJobs.map(job =>
+                job.id === jobId ? { ...job, status: "closed" } : job
+            ));
+            alert("Job closed successfully");
+        } catch (error) {
+            console.error("Error closing job:", error);
+            alert("Failed to close job. Please try again.");
+        }
+    };
+        
     const filteredApplicants = applicants.filter(app => {
         const matchesSearch = searchTerm === "" || 
             `${app.firstName} ${app.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -140,6 +159,65 @@ const fetchTrendData = async () => {
         return matchesSearch && matchesStatus;
     });
 
+    const openRejectModal = (applicationId) => {
+        setSelectedApplicationId(applicationId);
+        setShowRejectModal(true);
+    };
+
+    const handleSubmitRejection = async () => {
+        if (!rejectionReason.trim()) {
+            alert("Rejection reason is required.");
+            return;
+        }
+        
+        try {
+            await handleStatusUpdate(selectedApplicationId, "rejected", rejectionReason);
+            setShowRejectModal(false);
+            setRejectionReason("");
+            setSelectedApplicationId(null);
+        } catch (err) {
+            console.error("Error submitting rejection:", err);
+        }
+    };
+
+    const closeRejectModal = () => {
+        setShowRejectModal(false);
+        setRejectionReason("");
+        setSelectedApplicationId(null);
+    };
+
+    // Helper component for stat cards
+    const StatCard = ({ icon, bgColor, textColor, title, value, subtitle }) => (
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 ${bgColor} rounded-full`}>
+                    <span className={`material-symbols-outlined ${textColor}`}>{icon}</span>
+                </div>
+                <span className="text-sm text-gray-500">{title}</span>
+            </div>
+            <div className="space-y-1">
+                <p className="text-2xl font-bold text-gray-900">{value}</p>
+                <p className="text-sm text-green-600">{subtitle}</p>
+            </div>
+        </div>
+    );
+
+    // Helper component for action buttons
+    const ActionButton = ({ icon, label, onClick, variant = "default" }) => {
+        const baseClass = "w-full flex items-center justify-between p-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200";
+        
+        return (
+            <button onClick={onClick} className={baseClass}>
+                <span className="flex items-center space-x-3">
+                    <span className="material-symbols-outlined text-gray-600">{icon}</span>
+                    <span className="text-gray-700">{label}</span>
+                </span>
+                <span className="material-symbols-outlined text-gray-400">arrow_forward</span>
+            </button>
+        );
+    };
+// Before the return in your component
+console.log("Applicants data:", applicants);
     return (
         <div id="webcrumbs">
             <div className="w-full min-h-screen bg-gray-50 p-6">
@@ -150,57 +228,38 @@ const fetchTrendData = async () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-blue-100 rounded-full">
-                                    <span className="material-symbols-outlined text-blue-600">work</span>
-                                </div>
-                                <span className="text-sm text-gray-500">Total Jobs</span>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-                                <p className="text-sm text-green-600">+3 this month</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-green-100 rounded-full">
-                                    <span className="material-symbols-outlined text-green-600">trending_up</span>
-                                </div>
-                                <span className="text-sm text-gray-500">Active Jobs</span>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-2xl font-bold text-gray-900">{stats.activeListings}</p>
-                                <p className="text-sm text-gray-500">Currently hiring</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-purple-100 rounded-full">
-                                    <span className="material-symbols-outlined text-purple-600">person</span>
-                                </div>
-                                <span className="text-sm text-gray-500">Total Applicants</span>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-2xl font-bold text-gray-900">{stats.totalApplications}</p>
-                                <p className="text-sm text-blue-600">+{stats.newApplicationsToday} today</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-orange-100 rounded-full">
-                                    <span className="material-symbols-outlined text-orange-600">schedule</span>
-                                </div>
-                                <span className="text-sm text-gray-500">Pending Reviews</span>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-2xl font-bold text-gray-900">{stats.pendingApprovals}</p>
-                                <p className="text-sm text-orange-600">Needs attention</p>
-                            </div>
-                        </div>
+                        <StatCard
+                            icon="work"
+                            bgColor="bg-blue-100"
+                            textColor="text-blue-600"
+                            title="Total Jobs"
+                            value={stats.totalJobs}
+                            subtitle="+3 this month"
+                        />
+                        <StatCard
+                            icon="trending_up"
+                            bgColor="bg-green-100"
+                            textColor="text-green-600"
+                            title="Active Jobs"
+                            value={stats.activeListings}
+                            subtitle="Currently hiring"
+                        />
+                        <StatCard
+                            icon="person"
+                            bgColor="bg-purple-100"
+                            textColor="text-purple-600"
+                            title="Total Applicants"
+                            value={stats.totalApplications}
+                            subtitle={`+${stats.newApplicationsToday} today`}
+                        />
+                        <StatCard
+                            icon="schedule"
+                            bgColor="bg-orange-100"
+                            textColor="text-orange-600"
+                            title="Pending Reviews"
+                            value={stats.pendingApprovals}
+                            subtitle="Needs attention"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -217,38 +276,38 @@ const fetchTrendData = async () => {
                                     </div>
                                 </div>
                                 <div className="h-64 bg-white rounded-lg">
-  <Chart
-    type="area"
-    height="100%"
-    width="100%"
-    options={{
-      chart: {
-        id: "applications-trend",
-        toolbar: { show: false },
-        zoom: { enabled: false }
-      },
-      xaxis: {
-        categories: trendData.map(item => item.date),
-        title: { text: "Date" }
-      },
-      yaxis: {
-        title: { text: "Applications" }
-      },
-      dataLabels: { enabled: false },
-      stroke: { curve: "smooth", width: 2 },
-      colors: ["#3B82F6"],
-      tooltip: {
-        x: { format: 'yyyy-MM-dd' }
-      }
-    }}
-    series={[
-      {
-        name: "Applications",
-        data: trendData.map(item => item.count)
-      }
-    ]}
-  />
-</div>
+                                    <Chart
+                                        type="area"
+                                        height="100%"
+                                        width="100%"
+                                        options={{
+                                            chart: {
+                                                id: "applications-trend",
+                                                toolbar: { show: false },
+                                                zoom: { enabled: false }
+                                            },
+                                            xaxis: {
+                                                categories: trendData.map(item => item.date),
+                                                title: { text: "Date" }
+                                            },
+                                            yaxis: {
+                                                title: { text: "Applications" }
+                                            },
+                                            dataLabels: { enabled: false },
+                                            stroke: { curve: "smooth", width: 2 },
+                                            colors: ["#3B82F6"],
+                                            tooltip: {
+                                                x: { format: 'yyyy-MM-dd' }
+                                            }
+                                        }}
+                                        series={[
+                                            {
+                                                name: "Applications",
+                                                data: trendData.map(item => item.count)
+                                            }
+                                        ]}
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-3 gap-4 mt-6">
                                     <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -285,37 +344,47 @@ const fetchTrendData = async () => {
                             </div>
 
                             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">My Jobs</h3>
+                                {jobs.length === 0 ? (
+                                    <p className="text-gray-500">No jobs posted yet.</p>
+                                ) : (
+                                    <ul className="space-y-4">
+                                        {jobs.map((job) => (
+                                            <li key={job.id} className="flex justify-between items-center border-b pb-2">
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-800">{job.title}</p>
+                                                    <p className="text-xs text-gray-500">Status: 
+                                                        <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                            job.status === "closed" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                                                        }`}>
+                                                            {job.status}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                                 <div className="space-y-3">
-                                    <button className="w-full flex items-center justify-between p-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                                        <span className="flex items-center space-x-3">
-                                            <span className="material-symbols-outlined text-gray-600">visibility</span>
-                                            <span className="text-gray-700">View All Jobs</span>
-                                        </span>
-                                        <span className="material-symbols-outlined text-gray-400">arrow_forward</span>
-                                    </button>
-                                    <button
-  onClick={() => navigate("/settings")}
-  className="w-full flex items-center justify-between p-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
->
-  <span className="flex items-center space-x-3">
-    <span className="material-symbols-outlined text-gray-600">edit</span>
-    <span className="text-gray-700">Edit Profile</span>
-  </span>
-  <span className="material-symbols-outlined text-gray-400">arrow_forward</span>
-</button>
-
-<button
-  onClick={() => navigate("/settings")}
-  className="w-full flex items-center justify-between p-3 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
->
-  <span className="flex items-center space-x-3">
-    <span className="material-symbols-outlined text-gray-600">settings</span>
-    <span className="text-gray-700">Account Settings</span>
-  </span>
-  <span className="material-symbols-outlined text-gray-400">arrow_forward</span>
-</button>
-
+                                    <ActionButton
+                                        icon="visibility"
+                                        label="View All Jobs"
+                                        onClick={() => navigate("/jobs")}
+                                    />
+                                    <ActionButton
+                                        icon="edit"
+                                        label="Edit Profile"
+                                        onClick={() => navigate("/settings")}
+                                    />
+                                    <ActionButton
+                                        icon="settings"
+                                        label="Account Settings"
+                                        onClick={() => navigate("/settings")}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -393,11 +462,10 @@ const fetchTrendData = async () => {
                                                                 <p className="font-medium text-gray-900">
                                                                     {app.firstName} {app.lastName}
                                                                 </p>
-                                                               <p className="text-sm text-gray-500">{app.email}</p>
-<p className="text-xs text-green-600 mt-1">
-  Skill Match: {app.skillMatchPercent || 0}%
-</p>
-
+                                                                <p className="text-sm text-gray-500">{app.email}</p>
+                                                                <p className="text-xs text-green-600 mt-1">
+                                                                    Skill Match: {app.skillMatchPercent || 0}%
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -427,8 +495,9 @@ const fetchTrendData = async () => {
                                                                     >
                                                                         <span className="material-symbols-outlined">check_circle</span>
                                                                     </button>
-                                                                    <button 
-                                                                        onClick={() => handleStatusUpdate(app.applicationId, "rejected")}
+                                                                    
+                                                                    <button
+                                                                        onClick={() => openRejectModal(app.applicationId)}
                                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                                                                     >
                                                                         <span className="material-symbols-outlined">cancel</span>
@@ -508,17 +577,63 @@ const fetchTrendData = async () => {
                             <div className="space-y-3">
                                 <p><strong>Email:</strong> {selectedApplicant.email}</p>
                                 <p><strong>Bio:</strong> {selectedApplicant.bio || "N/A"}</p>
-                                 <p><strong>Skills:</strong> {selectedApplicant.skills || "N/A"}</p>
                                 <p><strong>Skill Match:</strong> {selectedApplicant.skillMatchPercent || 0}%</p>
-
                                 <p><strong>Location:</strong> {selectedApplicant.location || "N/A"}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                 {/* Rejection Modal - Now with proper z-index and backdrop */}
+                {showRejectModal && (
+                    <div className="fixed inset-0 z-[50v] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl p-6 shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-100">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-gray-800">Reject Application</h2>
+                                <button
+                                    onClick={closeRejectModal}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                                >
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+
+                            <div className="mb-4">
+                                <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Reason for rejection *
+                                </label>
+                                <textarea
+                                    id="rejectionReason"
+                                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
+                                    rows="4"
+                                    placeholder="Please provide a reason for rejecting this application..."
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                                    onClick={closeRejectModal}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                                    onClick={handleSubmitRejection}
+                                    disabled={!rejectionReason.trim()}
+                                >
+                                    Reject Application
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
         </div>
+        
     );
+    
 };
 
 export default EmployerDash;

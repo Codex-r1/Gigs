@@ -21,11 +21,9 @@ const Jobs = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
-
-  useEffect(() => {
+    // Initial filter application
     filterJobs();
-  }, [jobs, filters]);
+  }, [  filters, jobs]);
 
   const fetchJobs = async () => {
     try {
@@ -337,7 +335,7 @@ const Jobs = () => {
                       {role === "applicant" && (
                         <div className="flex flex-col gap-2 sm:items-end">
                           <Link to={`/apply/${job.jobId}`}>
-                            <button className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">
+                            <button className="px-4 py-2 bg-indigo-600 text-blue rounded hover:bg-indigo-700 transition-colors">
                               Apply
                             </button>
                           </Link>
@@ -357,6 +355,11 @@ const Jobs = () => {
           </div>
         </div>
       </div>
+<span className={`px-2 py-1 text-xs rounded-full font-medium ${
+  jobs.status === "closed" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+}`}>
+  {jobs.status === "closed" ? "Closed" : "Open"}
+</span>
 
       {/* Application Modal */}
       {selectedJob && (

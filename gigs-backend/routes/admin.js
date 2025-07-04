@@ -61,7 +61,7 @@ router.get('/admin/activity', authenticateToken, authorizeRoles("admin"), async 
         DATE(postedAt) as date,
         COUNT(*) as count
       FROM jobs
-      WHERE createdAt >= CURDATE() - INTERVAL 6 DAY
+      WHERE postedAt >= CURDATE() - INTERVAL 6 DAY
       GROUP BY DATE(postedAt)
       ORDER BY DATE(postedAt)
     `);
@@ -101,5 +101,19 @@ router.delete('/admin/users/:userId', authenticateToken, authorizeRoles("admin")
     res.status(500).json({ error: 'Server error while deleting user.' });
   }
 });
+// GET /api/admin/jobs - Fetch all jobs for Admin Dashboard
+router.get("/jobs", authenticateToken, authorizeRoles("admin"), async (req, res) => {
+  try {
+    const [jobs] = await pool.query(`
+      SELECT jobId, title, location, status, createdAt
+      FROM Jobs
+      ORDER BY createdAt DESC
+    `);
 
+    res.json(jobs);
+  } catch (err) {
+    console.error("Error fetching jobs for admin:", err);
+    res.status(500).json({ error: "Failed to fetch jobs" });
+  }
+});
 module.exports = router;

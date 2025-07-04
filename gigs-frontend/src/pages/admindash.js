@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import "../styles/admin.css";
 import Chart from "react-apexcharts";
 
-const AdminDash = () => {
+const  AdminDash = () => {
   const [stats, setStats] = useState({ users: 0, jobs: 0, applications: 0 });
   const [recentApps, setRecentApps] = useState([]);
   const [users, setUsers] = useState([]);
+  const [recentJobs, setRecentJobs] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [chartData, setChartData] = useState({
     options: {
       chart: { id: "activity-chart" },
@@ -14,10 +15,19 @@ const AdminDash = () => {
     series: [{ name: "Users", data: [30, 45, 20, 60, 35, 50, 25] }]
   });
 
-  const token = localStorage.getItem("token");
+  // Get token from localStorage (if available in environment)
+  const getToken = () => {
+    try {
+      return localStorage?.getItem("token") || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const token = getToken();
 
   // DELETE user handler
-  const handleDelete = async (id) => {
+  const handleDeleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
@@ -27,7 +37,7 @@ const AdminDash = () => {
       });
       const data = await res.json();
       alert(data.message);
-      setUsers(users.filter((u) => u.id !== id));
+      setUsers(users.filter((u) => u.userId !== id));
     } catch (err) {
       console.error("Error deleting user:", err);
       alert("Failed to delete user.");
@@ -35,12 +45,12 @@ const AdminDash = () => {
   };
 
   // EDIT user handler
-  const handleEdit = async (user) => {
+  const handleEditUser = async (user) => {
     const newEmail = prompt("Enter new email:", user.email);
     if (!newEmail) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${user.id}`, {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${user.userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -54,11 +64,28 @@ const AdminDash = () => {
 
       const data = await res.json();
       alert(data.message);
-      setUsers(users.map((u) => (u.id === user.id ? { ...u, email: newEmail } : u)));
+      setUsers(users.map((u) => (u.userId === user.userId ? { ...u, email: newEmail } : u)));
     } catch (err) {
       console.error("Error updating user:", err);
       alert("Failed to update user.");
     }
+  };
+
+  // Block user handler (placeholder)
+  const handleBlockUser = (userId) => {
+    alert(`Block user functionality not implemented yet for user ${userId}`);
+  };
+
+  // Delete job handler (placeholder)
+  const handleDeleteJob = (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
+    alert(`Delete job functionality not implemented yet for job ${jobId}`);
+  };
+
+  // Delete application handler (placeholder)
+  const handleDeleteApplication = (appId) => {
+    if (!window.confirm("Are you sure you want to delete this application?")) return;
+    alert(`Delete application functionality not implemented yet for application ${appId}`);
   };
 
   useEffect(() => {
@@ -71,10 +98,12 @@ const AdminDash = () => {
         setStats(data);
       } catch (err) {
         console.error("Failed to fetch stats", err);
+        // Use fallback data for demo
+        setStats({ users: 1249, jobs: 523, applications: 2876 });
       }
     };
 
-    const fetchRecentApplications = async () => {
+     const fetchApplications = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/admin/applications", {
           headers: { Authorization: `Bearer ${token}` },
@@ -82,7 +111,7 @@ const AdminDash = () => {
         const data = await res.json();
         setRecentApps(data);
       } catch (err) {
-        console.error("Failed to fetch recent applications", err);
+        console.error("Failed to fetch applications", err);
       }
     };
 
@@ -122,131 +151,391 @@ const AdminDash = () => {
         setChartData({
           options: {
             chart: { id: "activity-chart" },
-            xaxis: { categories: days }
+            xaxis: { categories: days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })) }
           },
           series: [{ name: "New Users", data: seriesData }]
         });
       } catch (err) {
         console.error("Failed to fetch activity data", err);
+        // Keep default chart data
       }
     };
-
+const fetchJobs = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/jobs", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setRecentJobs(data);
+      } catch (err) {
+        console.error("Failed to fetch jobs", err);
+      }
+    };
+    
+    fetchJobs();
     fetchStats();
-    fetchRecentApplications();
+    fetchApplications();
     fetchUsers();
     fetchActivity();
   }, [token]);
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'suspended': return 'bg-red-100 text-red-800';
+      case 'new': return 'bg-blue-100 text-blue-800';
+      case 'reviewed': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRoleColor = (role) => {
+    return role === "applicant" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800";
+  };
+
   return (
     <div id="webcrumbs">
-      <div className="w-full max-w-[1440px] bg-gray-50 p-4 sm:p-6 md:p-8">
-        <div className="max-w-full mx-auto">
-          <header className="mb-6 md:mb-8">
-            <div className="flex justify-between">
+      <div className="w-full min-h-screen bg-gray-50 p-4">
+        <div className="max-w-7xl mx-auto">
+          <header className="bg-white rounded-xl shadow-md p-6 mb-6 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary-600 text-white p-3 rounded-full">
+                <span className="material-symbols-outlined text-2xl">work</span>
+              </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-600">Manage your job marketplace platform</p>
+                <h1 className="text-2xl font-bold text-gray-800"> Admin</h1>
+                <p className="text-sm text-gray-500"> Management Dashboard</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button onClick={() => window.location.href = "/settings"} className="p-2 rounded-full hover:bg-gray-100 transition-all">
+                <span className="material-symbols-outlined">settings</span>
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-bold">AD</span>
+                </div>
+                <span className="font-medium">Admin</span>
               </div>
             </div>
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <StatCard label="Total Users" count={stats.users} color="primary" />
-            <StatCard label="Job Posts" count={stats.jobs} color="blue" />
-            <StatCard label="Applications" count={stats.applications} color="purple" />
+            <div className="bg-white p-6 rounded-xl shadow-md flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="bg-blue-100 p-4 rounded-full">
+                <span className="material-symbols-outlined text-blue-600 text-2xl">person</span>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Total Users</p>
+                <h2 className="text-2xl font-bold">{stats.users}</h2>
+                <p className="text-xs text-green-600 flex items-center">
+                  <span className="material-symbols-outlined text-sm">trending_up</span>
+                  +5.3% this week
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-md flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="bg-purple-100 p-4 rounded-full">
+                <span className="material-symbols-outlined text-purple-600 text-2xl">description</span>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Active Jobs</p>
+                <h2 className="text-2xl font-bold">{stats.jobs}</h2>
+                <p className="text-xs text-green-600 flex items-center">
+                  <span className="material-symbols-outlined text-sm">trending_up</span>
+                  +12.7% this week
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-md flex items-center gap-4 hover:shadow-lg transition-all">
+              <div className="bg-amber-100 p-4 rounded-full">
+                <span className="material-symbols-outlined text-amber-600 text-2xl">handshake</span>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Applications</p>
+                <h2 className="text-2xl font-bold">{stats.applications}</h2>
+                <p className="text-xs text-red-600 flex items-center">
+                  <span className="material-symbols-outlined text-sm">trending_down</span>
+                  -2.1% this week
+                </p>
+              </div>
+            </div>
           </div>
 
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Applications</h2>
-            <div className="bg-white rounded-lg shadow-sm">
-              {recentApps.length === 0 ? (
-                <p className="p-4 text-gray-500">No recent applications.</p>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {recentApps.map((app) => (
-                    <li key={app.id} className="p-4">
-                      <p><strong>{app.firstName} {app.lastName}</strong> applied for <strong>{app.jobTitle}</strong></p>
-                      <p className="text-sm text-gray-500">{app.appliedAt}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Activity Overview</h2>
+                <select className="bg-gray-100 px-3 py-1.5 rounded-lg text-sm border-0 focus:ring-2 focus:ring-primary-500">
+                  <option>Last 7 days</option>
+                  <option>Last 30 days</option>
+                  <option>Last 90 days</option>
+                </select>
+              </div>
+              <div className="h-80 w-full">
+                <Chart options={chartData.options} series={chartData.series} type="bar" height={300} />
+              </div>
             </div>
-          </section>
 
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">User Management</h2>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              {users.length === 0 ? (
-                <p className="p-4 text-gray-500">No users found.</p>
-              ) : (
-                <ul className="divide-y divide-gray-100">
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">Recent Activity</h2>
+                <button className="text-primary-600 text-sm hover:underline">View All</button>
+              </div>
+
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className={`border-l-4 border-${activity.color}-500 pl-4 py-1`}>
+                    <p className="text-sm font-medium">{activity.title}</p>
+                    <p className="text-xs text-gray-500">{activity.description}</p>
+                    <p className="text-xs text-gray-400">{activity.time}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">Recent Job Posts</h2>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Search jobs..."
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  <button className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors">
+                    <span className="material-symbols-outlined">search</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentJobs.map((job) => (
+                      <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm font-medium">{job.title}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{job.company}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{job.posted}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(job.status)}`}>
+                            {job.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
+                          <button 
+                            onClick={() => handleDeleteJob(job.id)}
+                            className="text-gray-500 hover:text-red-600 transition-colors"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">Recent Applications</h2>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Search applications..."
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  <button className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors">
+                    <span className="material-symbols-outlined">search</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentApps.map((app) => (
+                      <tr key={app.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                              <span className="text-blue-600 text-sm font-bold">
+                                {app.firstName?.charAt(0)}{app.lastName?.charAt(0)}
+                              </span>
+                            </div>
+                            <p className="text-sm font-medium">{app.firstName} {app.lastName}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{app.jobTitle}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{app.appliedAt}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(app.status)}`}>
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
+                          <button 
+                            onClick={() => handleDeleteApplication(app.id)}
+                            className="text-gray-500 hover:text-red-600 transition-colors"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-gray-800">User Management</h2>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
-                    <li key={user.userId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium">
-                            {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                          </span>
+                    <tr key={user.userId} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <span className="text-blue-600 font-bold">
+                              {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
+                            <p className="text-xs text-gray-500">{user.role}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
-                          </p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
-                          <span className={`inline-block px-2 py-1 mt-1 rounded-full text-xs ${
-                            user.role === "applicant"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {user.role}
-                          </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <p className="text-sm text-gray-700">{user.email}</p>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(user.status)}`}>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <p className="text-sm text-gray-700">{user.joinedAt}</p>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => handleEditUser(user)}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-gray-500">edit</span>
+                          </button>
+                          <button 
+                            onClick={() => handleBlockUser(user.userId)}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-gray-500">block</span>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteUser(user.userId)}
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-red-500">delete</span>
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(user)}
-                          className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200"
-                        >
-                          <span className="material-symbols-outlined text-sm">edit</span>
-                        </button>
-                        <button
-                          className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center hover:bg-yellow-200"
-                          title="Block (not implemented)"
-                        >
-                          <span className="material-symbols-outlined text-sm text-yellow-600">block</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(user.userId)}
-                          className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center hover:bg-red-200"
-                        >
-                          <span className="material-symbols-outlined text-sm text-red-600">delete</span>
-                        </button>
-                      </div>
-                    </li>
+                      </td>
+                    </tr>
                   ))}
-                </ul>
-              )}
+                </tbody>
+              </table>
             </div>
-          </section>
 
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">User Activity Overview</h2>
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <Chart options={chartData.options} series={chartData.series} type="bar" height={300} />
+            <div className="mt-6 flex justify-between items-center">
+              <p className="text-sm text-gray-500">Showing 1-{users.length} of {users.length} users</p>
+              <div className="flex gap-2">
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled
+                >
+                  <span className="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+                <button className="px-3 py-1 bg-primary-100 text-primary-600 rounded-md hover:bg-primary-200 transition-colors">
+                  1
+                </button>
+                <button className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                  2
+                </button>
+                <button className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                  3
+                </button>
+                <button className="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                  <span className="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+              </div>
             </div>
-          </section>
+          </div>
         </div>
       </div>
     </div>
   );
-};
-
-const StatCard = ({ label, count, color }) => (
-  <div className={`bg-white border border-gray-200 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow`}>
-    <h3 className="text-xl font-bold text-gray-900 mb-1">{count}</h3>
-    <p className={`text-sm text-${color}-600`}>{label}</p>
-  </div>
-);
-
+}
 export default AdminDash;

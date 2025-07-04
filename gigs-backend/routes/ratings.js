@@ -3,10 +3,30 @@ const router = express.Router();
 const pool = require('../config/database');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
+// GET /api/ratings/applicant/:id - Get applicant details for rating
+router.get('/applicant/:id', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const [applicant] = await pool.query(
+      'SELECT userId, firstName, lastName, email FROM users WHERE userId = ? AND role = "applicant"',
+      [id]
+    );
+    
+    if (applicant.length === 0) {
+      return res.status(404).json({ error: "Applicant not found" });
+    }
+    
+    res.json(applicant[0]);
+  } catch (err) {
+    console.error("Error fetching applicant:", err);
+    res.status(500).json({ error: "Failed to fetch applicant details" });
+  }
+});
 
 // POST /api/ratings - Submit a rating
 router.post('/', authenticateToken, authorizeRoles("employer"), async (req, res) => {
- console.log("req.user:", req.user); 
+  console.log("req.user:", req.user); 
   const employerId = req.user.id;
   const { applicantId, feedback } = req.body;
 

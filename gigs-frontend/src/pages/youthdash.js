@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../styles/style.css";
 
 // Card to display individual application data and employer contact if accepted
@@ -50,7 +51,6 @@ const ApplicationCard = ({ app }) => {
             <h3 className="font-medium text-lg text-gray-900">
               {app.title}
             </h3>
-            <p className="text-gray-600">{app.company || "Company Name"}</p>
             <div className="flex items-center space-x-3 mt-2">
               <div className="flex items-center text-gray-500 text-sm">
                 <span className="material-symbols-outlined text-xs mr-1">
@@ -70,6 +70,12 @@ const ApplicationCard = ({ app }) => {
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
           {app.status}
         </span>
+        {app.status === "rejected" && app.reviewComment && (
+  <div className="mt-2 text-sm text-red-600">
+    <strong>Rejection Reason:</strong> {app.reviewComment}
+  </div>
+)}
+
       </div>
       
       {/* Show contact details only for accepted applications */}
@@ -118,7 +124,9 @@ const YouthDash = () => {
   const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
   const [stats, setStats] = useState({ applications: 0, bookmarks: 0 });
   const [ratings, setRatings] = useState([]);
+  const [applicationFilter, setApplicationFilter] = useState("All");
 
+  const navigate = useNavigate();
   const fetchRatings = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/ratings/applicant", {
@@ -279,7 +287,7 @@ const YouthDash = () => {
                   </div>
                 </div>
 
-                <button className="w-full mt-6 flex items-center justify-center bg-primary-50 text-primary-600 font-medium py-2 px-4 rounded-lg hover:bg-primary-100 transition-colors duration-200">
+                <button  onClick={() => window.location.href = "/settings" } className="w-full mt-6 flex items-center justify-center bg-primary-50 text-primary-600 font-medium py-2 px-4 rounded-lg hover:bg-primary-100 transition-colors duration-200">
                   <span className="material-symbols-outlined mr-2">edit</span>
                   Edit Profile
                 </button>
@@ -347,13 +355,18 @@ const YouthDash = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">My Applications</h2>
                   <div className="flex space-x-2">
-                    <select className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                      <option>All Applications</option>
-                      <option>Active</option>
-                      <option>Rejected</option>
-                      <option>Accepted</option>
-                    </select>
-                    <button className="bg-primary-500 text-white rounded-lg px-4 py-2 hover:bg-primary-600 transition-colors duration-200 flex items-center">
+                    <select
+  value={applicationFilter}
+  onChange={(e) => setApplicationFilter(e.target.value)}
+  className="text-sm border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+>
+  <option value="All">All Applications</option>
+  <option value="pending">Active</option>
+  <option value="rejected">Rejected</option>
+  <option value="accepted">Accepted</option>
+</select>
+
+                    <button onClick={() => window.location.href = "/jobs"} className="bg-primary-500 text-white rounded-lg px-4 py-2 hover:bg-primary-600 transition-colors duration-200 flex items-center">
                       <span className="material-symbols-outlined mr-1">add</span>
                       New
                     </button>
@@ -364,9 +377,14 @@ const YouthDash = () => {
                   {applications.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">You haven't applied for any jobs yet.</p>
                   ) : (
-                    applications.map((app) => (
-                      <ApplicationCard key={app.applicationId} app={app} />
-                    ))
+                   applications
+  .filter((app) =>
+    applicationFilter === "All" ? true : app.status.toLowerCase() === applicationFilter.toLowerCase()
+  )
+  .map((app) => (
+    <ApplicationCard key={app.applicationId} app={app} />
+  ))
+
                   )}
                 </div>
 
@@ -421,9 +439,12 @@ const YouthDash = () => {
                             Full-time
                           </div>
                         </div>
-                        <button className="w-full mt-2 bg-primary-50 text-primary-600 font-medium py-2 px-4 rounded-lg hover:bg-primary-100 transition-colors duration-200">
-                          Apply Now
-                        </button>
+                        <button
+  onClick={() => navigate(`/apply/${job.jobId}`)}
+  className="w-full mt-2 bg-primary-50 text-primary-600 font-medium py-2 px-4 rounded-lg hover:bg-primary-100 transition-colors duration-200"
+>
+  Apply Now
+</button>
                       </div>
                     ))
                   )}

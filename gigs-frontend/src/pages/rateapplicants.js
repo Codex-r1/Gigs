@@ -1,169 +1,178 @@
-import React, { useState } from "react";
-import "../styles/rate.css"; // Assuming you have a CSS file for styles
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "../styles/rate.css";
+
 const RateApplicant = () => {
+  const { applicantId } = useParams();
+  const [applicant, setApplicant] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [score, setScore] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
-  const [recommended, setRecommended] = useState(null); // true for thumbs up, false for thumbs down, null for unselected
+  const [recommended, setRecommended] = useState(null);
 
-  // Mock applicant data for demo
-  const applicant = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com"
+    useEffect(() => {
+  const fetchApplicant = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`http://localhost:5000/api/ratings/applicant/${applicantId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setApplicant(res.data);
+    } catch (err) {
+      console.error("Error fetching applicant:", err);
+      console.log("Fetched applicantId:", applicantId);
+    }
   };
 
-  // Submit rating
+  fetchApplicant();
+}, [applicantId]);
+
+
   const handleSubmit = async () => {
-    if (score === 0) {
-      alert("Please select a score before submitting");
-      return;
-    }
-    
-    if (recommended === null) {
-      alert("Please select whether you recommend this applicant");
-      return;
-    }
-    
-    console.log("Submitting rating:", {
-      applicantId: "11",
-      feedback,
-      score,
-      recommended,
-    });
-    
+  if (score === 0 || recommended === null) {
+    alert("Please complete score and recommendation.");
+    return;
+  }
+
+  const token = localStorage.getItem("token"); // Get JWT from localStorage
+
+  if (!token) {
+    alert("You're not logged in. Please log in again.");
+    return;
+  }
+
+  try {
+    await axios.post(
+      "http://localhost:5000/api/ratings",
+      {
+        applicantId,
+        feedback: `${feedback}\n\nScore: ${score}/5\nRecommendation: ${recommended ? "Yes" : "No"}`
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     alert("Rating submitted successfully");
-    // Reset form
     setFeedback("");
     setScore(0);
     setRecommended(null);
-  };
+  } catch (err) {
+    console.error("Error submitting rating:", err);
+    alert(err.response?.data?.error || "Failed to submit rating.");
+  }
+};
 
-  // Recommendation component
-  const RecommendationButtons = () => {
-    return (
-      <div className="flex items-center space-x-4">
-        <button
-          type="button"
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
-            recommended === true
-              ? 'bg-green-50 border-green-500 text-green-700'
-              : 'bg-white border-gray-300 text-gray-600 hover:border-green-300 hover:bg-green-50'
-          }`}
-          onClick={() => setRecommended(true)}
-        >
-          <span className="text-2xl">👍</span>
-          <span className="font-medium">Recommend</span>
-        </button>
-        
-        <button
-          type="button"
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg border-2 transition-all duration-200 ${
-            recommended === false
-              ? 'bg-red-50 border-red-500 text-red-700'
-              : 'bg-white border-gray-300 text-gray-600 hover:border-red-300 hover:bg-red-50'
-          }`}
-          onClick={() => setRecommended(false)}
-        >
-          <span className="text-2xl">👎</span>
-          <span className="font-medium">Not Recommend</span>
-        </button>
-      </div>
-    );
-  };
-  const StarRating = () => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <button
-          key={i}
-          type="button"
-          className={`text-3xl transition-colors duration-200 ${
-            i <= (hoveredStar || score) 
-              ? 'text-yellow-400 hover:text-yellow-500' 
-              : 'text-gray-300 hover:text-gray-400'
-          }`}
-          onClick={() => setScore(i)}
-          onMouseEnter={() => setHoveredStar(i)}
-          onMouseLeave={() => setHoveredStar(0)}
-        >
-          ★
-        </button>
-      );
-    }
-    return (
-      <div className="flex items-center space-x-1">
-        {stars}
-        <span className="ml-3 text-sm text-gray-600">
-          {score > 0 ? `${score}/5` : "Select a score"}
-        </span>
-      </div>
-    );
-  };
+  if (!applicant) return <div className="text-center py-10 text-gray-600">Loading applicant data...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Rate Applicant</h1>
-          
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-xl font-semibold text-indigo-600">
-                  {applicant.firstName[0]}{applicant.lastName[0]}
-                </span>
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {applicant.firstName} {applicant.lastName}
-                </h2>
-                <p className="text-gray-600">{applicant.email}</p>
-              </div>
-            </div>
+    <div id="webcrumbs">
+      <div className="w-[800px] bg-white p-8 mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Rate Applicant</h1>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Recommendation
-              </label>
-              <RecommendationButtons />
-              <p className="text-xs text-gray-500 mt-2">
-                {recommended === true ? "You recommend this applicant" : 
-                 recommended === false ? "You do not recommend this applicant" : 
-                 "Select whether you recommend this applicant"}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Score
-              </label>
-              <StarRating />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feedback
-              </label>
-              <textarea
-                rows={4}
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Write your feedback here..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-              />
-            </div>
-
-            <div className="text-right">
-              <button
-                onClick={handleSubmit}
-                className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200"
-              >
-                Submit Rating
-              </button>
-            </div>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center">
+            <span className="text-blue-600 font-bold text-lg">
+              {applicant.firstName[0]}{applicant.lastName[0]}
+            </span>
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">{applicant.firstName} {applicant.lastName}</h2>
+            <p className="text-gray-600">{applicant.email}</p>
           </div>
         </div>
+
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recommendation</h3>
+
+          <div className="flex gap-4 mb-4">
+            <button 
+              className={`flex items-center gap-2 px-6 py-3 border-2 rounded-lg transition-all duration-200 group ${
+                recommended === true
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+              }`}
+              onClick={() => setRecommended(true)}
+            >
+              <span className="text-2xl">👍</span>
+              <span className={`font-medium ${
+                recommended === true ? 'text-green-600' : 'text-gray-700 group-hover:text-green-600'
+              }`}>Recommend</span>
+            </button>
+
+            <button 
+              className={`flex items-center gap-2 px-6 py-3 border-2 rounded-lg transition-all duration-200 group ${
+                recommended === false
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 hover:border-red-500 hover:bg-red-50'
+              }`}
+              onClick={() => setRecommended(false)}
+            >
+              <span className="text-2xl">👎</span>
+              <span className={`font-medium ${
+                recommended === false ? 'text-red-600' : 'text-gray-700 group-hover:text-red-600'
+              }`}>Not Recommend</span>
+            </button>
+          </div>
+
+          <p className="text-gray-600 text-sm">Select whether you recommend this applicant</p>
+        </div>
+
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Score</h3>
+
+          <div className="flex items-center gap-2 mb-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button 
+                key={star}
+                className="w-8 h-8 transition-all duration-200 hover:scale-110"
+                onClick={() => setScore(star)}
+                onMouseEnter={() => setHoveredStar(star)}
+                onMouseLeave={() => setHoveredStar(0)}
+              >
+                <span className={`material-symbols-outlined text-3xl ${
+                  star <= (hoveredStar || score) ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'
+                }`}>
+                  star
+                </span>
+              </button>
+            ))}
+            <span className="text-gray-600 ml-2">
+              {score > 0 ? `${score}/5` : "Select a score"}
+            </span>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Feedback</h3>
+
+          <textarea
+            className="w-full h-32 p-4 border-2 border-gray-300 rounded-lg resize-none focus:border-primary-500 focus:outline-none transition-colors duration-200"
+            placeholder="Write your feedback here..."
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+          />
+        </div>
+
+        <div className="flex justify-end">
+          <button 
+            className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            onClick={handleSubmit}
+          >
+            Submit Rating
+          </button>
+        </div>
+
+        {/* Next: "Add confirmation modal after submission" */}
+        {/* Next: "Add rating history section" */}
+        {/* Next: "Add applicant details expandable section" */}
       </div>
     </div>
   );

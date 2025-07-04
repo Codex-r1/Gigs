@@ -42,4 +42,33 @@ router.get('/applicants', authenticateToken, authorizeRoles("employer"), async (
     res.status(500).json({ error: "Could not fetch applicants" });
   }
 });
+
+router.put('/update-status', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+  const { applicationId, status, reviewComment } = req.body;
+
+  if (!applicationId || !status) {
+    return res.status(400).json({ error: "Application ID and status are required" });
+  }
+
+  try {
+    if (status === "rejected" && reviewComment) {
+      await pool.query(
+        'UPDATE Applications SET status = ?, reviewComment = ? WHERE applicationId = ?',
+        [status, reviewComment, applicationId]
+      );
+    } else {
+      await pool.query(
+        'UPDATE Applications SET status = ? WHERE applicationId = ?',
+        [status, applicationId]
+      );
+    }
+
+    res.json({ message: "Status updated successfully" });
+  } catch (err) {
+    console.error("Error updating status:", err);
+    res.status(500).json({ error: "Failed to update status" });
+  }
+});
+
+
 module.exports = router;
