@@ -21,7 +21,6 @@ import Settings from './pages/settings';
 import About from './pages/about'; 
 import ApplicantFAQs from './pages/FAQs';
 import RateApplicant from './pages/rateapplicants';
-import ApplyForm from './pages/applyForm';
 
 
 
@@ -44,7 +43,6 @@ function AppLayout() {
         <Route path="/employerdash" element={<EmployerDash />} />
         <Route path="/jobpost" element={<JobPostForm />} />
         <Route path="/rate/:applicantId" element={<RateApplicant />} />
-        <Route path="/apply/:jobId" element={<ApplyForm />} />
         {/* Add more routes as needed */}
         <Route path="/settings" element={<Settings />} />
         <Route path="/about" element={<About />} />

@@ -27,8 +27,14 @@ function Navbar() {
               <i className="fa fa-bars" />
             </button>
             <Link className="navbar-brand" to="/">
-              <img src="null" className="logo" alt="Logo" />
-            </Link>
+ <img
+  src="/img/SS1.png"
+  alt="JiJENGE Logo"
+  className="logo"
+/>
+
+</Link>
+
           </div>
 
           <div className="collapse navbar-collapse" id="navbar-menu">

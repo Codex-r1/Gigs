@@ -461,14 +461,6 @@ font-size:17px;
 .companies{
 margin-top:30px;
 }
-.company-logo{
-display: table;
-width: 100%;
-}
-.company-logo img{
-margin:0 auto;
-max-width:100px
-}
 .company-content{
 }
 .company-content h3{
@@ -550,14 +542,6 @@ font-size:20px;
 }
 .companies{
 margin-top:30px;
-}
-.company-logo{
-display: table;
-width: 100%;
-}
-.company-logo img{
-margin:0 auto;
-max-width:100px
 }
 .company-content{
 }

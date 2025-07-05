@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import "../styles/style.css";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -12,18 +11,20 @@ const Jobs = () => {
     categories: [],
   });
   const [selectedJob, setSelectedJob] = useState(null);
-  const [applicationMessage, setApplicationMessage] = useState("");
+  const [applicationData, setApplicationData] = useState({
+    reason: "",
+    experience: ""
+  });
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const role = localStorage.getItem("role");
 
+  // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
-    // Initial filter application
-    filterJobs();
-  }, [  filters, jobs]);
+  }, []);
 
   const fetchJobs = async () => {
     try {
@@ -40,51 +41,8 @@ const Jobs = () => {
     }
   };
 
-  const applyToJob = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      setSubmitting(true);
-      await axios.post(
-        "http://localhost:5000/api/applications",
-        {
-          jobId: selectedJob.jobId,
-          message: applicationMessage,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      alert("Application submitted successfully!");
-      setSelectedJob(null);
-      setApplicationMessage("");
-    } catch (err) {
-      console.error("Failed to apply:", err);
-      alert("Failed to apply");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleBookmark = async (jobId) => {
-    const token = localStorage.getItem("token");
-    try {
-      await axios.post(
-        "http://localhost:5000/api/bookmarks",
-        { jobId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      alert("Job bookmarked!");
-    } catch (err) {
-      console.error("Bookmark error:", err);
-      alert("Bookmarking failed");
-    }
-  };
-
-  const filterJobs = () => {
+  // Filter jobs whenever filters or jobs change
+  useEffect(() => {
     let filtered = [...jobs];
 
     if (filters.location.trim()) {
@@ -112,6 +70,105 @@ const Jobs = () => {
     }
 
     setFilteredJobs(filtered);
+  }, [filters, jobs]);
+
+  const handleApplyClick = (job) => {
+    setSelectedJob(job);
+    setApplicationData({
+      reason: "",
+      experience: ""
+    });
+  };
+
+  const closeApplicationModal = () => {
+    setSelectedJob(null);
+    setApplicationData({
+      reason: "",
+      experience: ""
+    });
+  };
+
+  const applyToJob = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      setSubmitting(true);
+      await axios.post(
+        "http://localhost:5000/api/applications",
+        {
+          jobId: selectedJob.jobId,
+          motivation: applicationData.reason
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Application submitted successfully!");
+      closeApplicationModal();
+    } catch (err) {
+      console.error("Failed to apply:", err);
+      alert("Failed to apply");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBookmark = async (jobId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.post(
+        "http://localhost:5000/api/bookmarks",
+        { jobId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Job bookmarked!");
+    } catch (err) {
+      console.error("Bookmark error:", err);
+      alert("Bookmarking failed");
+    }
+  };
+
+  const handleCloseJob = async (jobId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/jobs/${jobId}/close`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Job closed successfully!");
+      fetchJobs();
+    } catch (err) {
+      console.error("Error closing job:", err);
+      alert("Failed to close job");
+    }
+  };
+
+  const handleReopenJob = async (jobId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/jobs/${jobId}/reopen`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Job reopened successfully!");
+      fetchJobs();
+    } catch (err) {
+      console.error("Error reopening job:", err);
+      alert("Failed to reopen job");
+    }
   };
 
   const getUniqueCategories = () => {
@@ -298,29 +355,34 @@ const Jobs = () => {
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                       <div className="flex-1">
-                        <h2 className="text-xl font-semibold text-slate-800 mb-1">
-                          {job.title}
-                        </h2>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h2 className="text-xl font-semibold text-slate-800">
+                            {job.title}
+                          </h2>
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                            job.status === "closed" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                          }`}>
+                            {job.status === "closed" ? "Closed" : "Open"}
+                          </span>
+                        </div>
                         <p className="text-slate-600 text-sm mb-2">{job.location}</p>
                         <p className="text-slate-700 mb-3">{job.description}</p>
 
-                        {/* Skill badges */}
-                            {job.skillsRequired && (
-  <div className="mb-3">
-    <p className="text-sm font-medium text-slate-700 mb-1">Skills Required:</p>
-    <div className="flex flex-wrap gap-2">
-      {job.skillsRequired.split(',').map((skill, idx) => (
-        <span
-          key={idx}
-          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-        >
-          {skill.trim()}
-        </span>
-      ))}
-    </div>
-  </div>
-)}
-
+                        {job.skillsRequired && (
+                          <div className="mb-3">
+                            <p className="text-sm font-medium text-slate-700 mb-1">Skills Required:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {job.skillsRequired.split(',').map((skill, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {skill.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-4">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
@@ -332,19 +394,40 @@ const Jobs = () => {
                         </div>
                       </div>
 
-                      {role === "applicant" && (
+                      {role === "applicant" && job.status !== "closed" && (
                         <div className="flex flex-col gap-2 sm:items-end">
-                          <Link to={`/apply/${job.jobId}`}>
-                            <button className="px-4 py-2 bg-indigo-600 text-blue rounded hover:bg-indigo-700 transition-colors">
-                              Apply
-                            </button>
-                          </Link>
+                          <button
+                            onClick={() => handleApplyClick(job)}
+                            className="px-4 py-2 bg-indigo-600 text-black rounded hover:bg-indigo-700 transition-colors"
+                          >
+                            Apply
+                          </button>
                           <button
                             onClick={() => handleBookmark(job.jobId)}
                             className="text-sm text-blue-500 hover:text-blue-700 transition-colors"
                           >
                             Bookmark
                           </button>
+                        </div>
+                      )}
+
+                      {role === "employer" && (
+                        <div className="flex flex-col gap-2 sm:items-end">
+                          {job.status === "closed" ? (
+                            <button
+                              onClick={() => handleReopenJob(job.jobId)}
+                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                            >
+                              Reopen Job
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleCloseJob(job.jobId)}
+                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                            >
+                              Close Job
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -355,39 +438,77 @@ const Jobs = () => {
           </div>
         </div>
       </div>
-<span className={`px-2 py-1 text-xs rounded-full font-medium ${
-  jobs.status === "closed" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-}`}>
-  {jobs.status === "closed" ? "Closed" : "Open"}
-</span>
 
       {/* Application Modal */}
       {selectedJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-lg relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl"
-              onClick={() => setSelectedJob(null)}
-            >
-              &times;
-            </button>
-            <h2 className="text-xl font-bold mb-4 text-slate-800">
-              Apply to: {selectedJob.title}
-            </h2>
-            <textarea
-              rows={5}
-              placeholder="Why are you a good fit for this job?"
-              value={applicationMessage}
-              onChange={(e) => setApplicationMessage(e.target.value)}
-              className="w-full p-3 border border-slate-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <button
-              onClick={applyToJob}
-              disabled={submitting || applicationMessage.trim() === ""}
-              className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Submitting..." : "Submit Application"}
-            </button>
+          <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl shadow-xl max-w-2xl w-full h-[90vh] overflow-y-auto">
+
+            <div className="p-6">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">Tell Us Why You're Perfect</h1>
+                <p className="text-lg text-slate-600">
+                  Share your motivation and stand out from other candidates
+                </p>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-white text-2xl">💼</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">{selectedJob.title}</h2>
+                      <p className="text-indigo-100">{selectedJob.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-8">
+                  <div className="mb-6">
+                    <label htmlFor="reason" className="block text-sm font-medium text-slate-700 mb-3">
+                      Why do you want this position? 
+                    </label>
+                    <textarea
+                      id="reason"
+                      rows={8}
+                      value={applicationData.reason}
+                      onChange={(e) => setApplicationData({...applicationData, reason: e.target.value})}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
+                      placeholder="Tell us what motivates you to apply for this role. What excites you about this opportunity? How do your skills and experience align with this position?"
+                    />
+                  </div>
+
+                  
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={applyToJob}
+                      disabled={submitting || applicationData.reason.trim() === ""}
+                      className="flex-1 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <span>📨</span>
+                        {submitting ? "Submitting..." : "Submit Application"}
+                      </span>
+                    </button>
+                    <button
+                      onClick={closeApplicationModal}
+                      className="flex-1 bg-slate-100 text-slate-700 py-3 px-6 rounded-lg font-medium hover:bg-slate-200 transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-slate-500">
+                  Your response will be reviewed by our team within 48 hours. If selected, you will be contacted for an interview.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

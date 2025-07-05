@@ -26,14 +26,14 @@ function App() {
         <div className="features-content">
           <span className="box1"><span aria-hidden="true" className="icon-dial" /></span>
           <h3>Get Verified</h3>
-          <p>Earn trust through skill verification, client ratings, and work history to increase your chances of getting hired.</p>
+          <p>Earn trust through client ratings and work history to increase your chances of getting hired.</p>
         </div>
       </div>
       <div className="col-md-4 col-sm-4">
         <div className="features-content">
           <span className="box1"><span aria-hidden="true" className="icon-printer" /></span>
           <h3>Get Paid Quickly</h3>
-          <p>Complete jobs and receive your payment securely through the platform or in cash as agreed.</p>
+          <p>Complete jobs and receive your payment securely as agreed.</p>
         </div>
       </div>
     </div>

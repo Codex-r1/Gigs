@@ -1,16 +1,4 @@
-/* ==============================================================
 
-Template name : Bootsnav - Multi Purpose Header
-Categorie : Bootstrap Menu in CSS
-Author : adamnurdin01
-Version : v.1.1
-Created : 2016-06-02
-Last update : 2016-06-11
-
-============================================================== */
-/*
-Typography
-=========================== */
 html,body {
     width:100%;
     height: auto;
@@ -123,11 +111,13 @@ ul.cart-list > li.total > .btn{
         margin-top: 0;
     }
     
-    nav.navbar .navbar-brand img.logo{
-        position:relative;
-		max-width: 80%;
-		top:2px;
-    }
+    nav.navbar .navbar-brand img.logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  margin-top: 5px;
+}
+
 	nav.navbar.sticked .navbar-brand img.logo{
         position:relative;
 		top:7px;
@@ -207,10 +197,12 @@ ul.cart-list > li.total > .btn{
         top: -2px;
     }
     
-    nav.navbar .navbar-brand img.logo{
-    width: 150px;
-    margin-top: 8px;
-    }
+   nav.navbar .navbar-brand img.logo {
+  height: 30px;
+  width: auto;
+  margin-top: 5px;
+}
+
     
     .attr-nav > ul > li > a{
         padding: 16px 15px 15px;

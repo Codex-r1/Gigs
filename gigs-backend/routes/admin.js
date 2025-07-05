@@ -120,7 +120,7 @@ router.get("/admin/jobs", authenticateToken, authorizeRoles("admin"), async (req
 router.delete("/jobs/:jobId", authenticateToken, authorizeRoles("admin"), async (req, res) => {
   const { jobId } = req.params;
   try {
-    const [result] = await pool.query("DELETE FROM jobs WHERE id = ?", [jobId]);
+    const [result] = await pool.query("DELETE FROM jobs WHERE jobId = ?", [jobId]);
     if (result.affectedRows === 0) return res.status(404).json({ message: "Job not found" });
     res.json({ message: "Job deleted successfully" });
   } catch (error) {

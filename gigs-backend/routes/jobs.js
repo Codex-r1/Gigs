@@ -75,18 +75,62 @@ router.patch('/:jobId/close', authenticateToken, authorizeRoles('employer'), asy
 
   try {
     // Optional: verify that this job belongs to the employer
-    const [job] = await pool.query('SELECT * FROM jobs WHERE id = ? AND employerId = ?', [jobId, employerId]);
+    const [job] = await pool.query('SELECT * FROM jobs WHERE jobId = ? AND employerId = ?', [jobId, employerId]);
 
     if (job.length === 0) {
       return res.status(404).json({ error: "Job not found or access denied" });
     }
 
-    await pool.query('UPDATE jobs SET status = "closed" WHERE id = ?', [jobId]);
+    await pool.query('UPDATE jobs SET status = "closed" WHERE jobId = ?', [jobId]);
     res.json({ message: "Job closed successfully" });
   } catch (err) {
     console.error("Error closing job:", err);
     res.status(500).json({ error: "Failed to close job" });
   }
 });
+// PUT /api/jobs/:jobId
+router.put('/:jobId', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+  const employerId = req.user.id;
+  const { jobId } = req.params;
+  const { title, description, location, category, skillsRequired, status } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE jobs 
+       SET title = ?, description = ?, location = ?, category = ?, skillsRequired = ?, status = ? 
+       WHERE jobId = ? AND employerId = ?`,
+      [title, description, location, category, skillsRequired, status, jobId, employerId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Job not found or unauthorized" });
+    }
+
+    res.json({ message: "Job updated successfully" });
+  } catch (err) {
+    console.error("Error updating job:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// DELETE /api/jobs/:jobId
+router.delete('/:id', authenticateToken, authorizeRoles("employer"), async (req, res) => {
+  const jobId = req.params.id;
+  const employerId = req.user.id;
+
+  // Check if the job exists and belongs to the employer
+  const [[job]] = await pool.query('SELECT * FROM Jobs WHERE jobId = ?', [jobId]);
+  if (!job) {
+    return res.status(404).json({ message: "Job not found" });
+  }
+
+  if (job.employerId !== employerId) {
+    return res.status(403).json({ message: "Not authorized to delete this job." });
+  }
+
+  await pool.query('DELETE FROM Jobs WHERE jobId = ?', [jobId]);
+  res.json({ message: "Job deleted successfully" });
+});
+
+
 
 module.exports = router;

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import axios from "axios";
 
-const  AdminDash = () => {
+const AdminDash = () => {
   const [stats, setStats] = useState({ users: 0, jobs: 0, applications: 0 });
   const [recentApps, setRecentApps] = useState([]);
   const [users, setUsers] = useState([]);
@@ -13,6 +13,7 @@ const  AdminDash = () => {
       chart: { id: "activity-chart" },
       xaxis: { categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }
     },
+    series: [{ name: "New Users", data: [1, 3, 2, 5, 4, 6, 1] }] // Initialize with default data
   });
 
   // Get token from localStorage (if available in environment)
@@ -72,73 +73,82 @@ const  AdminDash = () => {
   };
 
   const handleDeleteJob = async (jobId) => {
-  if (!window.confirm("Are you sure you want to delete this job?")) return;
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
 
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete(`http://localhost:5000/api/admin/jobs/${jobId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    alert("Job deleted successfully.");
-    
-    // Optional: refresh job list after delete
-    fetchJobs(); // <-- make sure you have this function defined
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/admin/jobs/${jobId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert("Job deleted successfully.");
+      
+      // Optional: refresh job list after delete
+      fetchJobs();
 
-  } catch (error) {
-    console.error("Error deleting job:", error);
-    alert("Failed to delete job. Please try again.");
-  }
-};
-const fetchJobs = async () => {
-  try {
-    const res = await fetch("http://localhost:5000/api/admin/jobs", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setRecentJobs(data);
-  } catch (err) {
-    console.error("Failed to fetch jobs", err);
-  }
-};
-const handleDeleteApplication = async (applicationId) => {
-  if (!window.confirm("Are you sure you want to delete this application?")) return;
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      alert("Failed to delete job. Please try again.");
+    }
+  };
 
-  try {
-    await axios.delete(`http://localhost:5000/api/admin/applications/${applicationId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    alert("Application deleted.");
-    setRecentApps(recentApps.filter((app) => app.id !== applicationId));
-  } catch (error) {
-    console.error("Error deleting application:", error);
-    alert("Failed to delete application.");
-  }
-};
-const handleBlockUser = async (userId) => {
-  if (!window.confirm("Block this user?")) return;
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/admin/jobs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      // Ensure data is an array
+      setRecentJobs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch jobs", err);
+      setRecentJobs([]); // Set empty array on error
+    }
+  };
 
-  try {
-    const res = await axios.put(`http://localhost:5000/api/admin/users/block/${userId}`, null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    alert(res.data.message || "User blocked.");
-    fetchUsers(); // refresh user list if needed
-  } catch (error) {
-    console.error("Error blocking user:", error);
-    alert("Failed to block user.");
-  }
-};
- const fetchUsers = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/admin/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Failed to fetch users", err);
-      }
-    };
+  const handleDeleteApplication = async (applicationId) => {
+    if (!window.confirm("Are you sure you want to delete this application?")) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/admin/applications/${applicationId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert("Application deleted.");
+      setRecentApps(recentApps.filter((app) => app.id !== applicationId));
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert("Failed to delete application.");
+    }
+  };
+
+  const handleBlockUser = async (userId) => {
+    if (!window.confirm("Block this user?")) return;
+
+    try {
+      const res = await axios.put(`http://localhost:5000/api/admin/users/block/${userId}`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert(res.data.message || "User blocked.");
+      fetchUsers(); // refresh user list if needed
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      alert("Failed to block user.");
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      // Ensure data is an array
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+      setUsers([]); // Set empty array on error
+    }
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -146,7 +156,7 @@ const handleBlockUser = async (userId) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setStats(data);
+        setStats(data || { users: 0, jobs: 0, applications: 0 });
       } catch (err) {
         console.error("Failed to fetch stats", err);
         // Use fallback data for demo
@@ -154,59 +164,79 @@ const handleBlockUser = async (userId) => {
       }
     };
 
-     const fetchApplications = async () => {
+    const fetchApplications = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/admin/applications", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setRecentApps(data);
+        // Ensure data is an array
+        setRecentApps(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch applications", err);
+        setRecentApps([]); // Set empty array on error
       }
     };
 
-   const fetchActivity = async () => {
-  try {
-    const res = await fetch("http://localhost:5000/api/admin/activity", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/activity", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+console.log("Fetched activity data:", data);
 
-    if (!Array.isArray(data)) {
-      console.error("Unexpected activity data:", data);
-      return;
-    }
+        // Check if data exists and is an array
+        if (!data || !Array.isArray(data)) {
+          console.error("Invalid activity data:", data);
+          // Set default chart data
+          setChartData({
+            options: {
+              chart: { id: "activity-chart" },
+              xaxis: { categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }
+            },
+            series: [{ name: "New Users", data: [0, 0, 0, 0, 0, 0, 0] }]
+          });
+          return;
+        }
 
-    const activityMap = {};
-    data.forEach(item => {
-      activityMap[item.date] = item.count;
-    });
+        const activityMap = {};
+        data.forEach(item => {
+          if (item && item.date) {
+            activityMap[item.date] = item.count || 0;
+          }
+        });
 
-    const days = [...Array(7)].map((_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      const iso = date.toISOString().split("T")[0];
-      return iso;
-    });
+        const days = [...Array(7)].map((_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - (6 - i));
+          const iso = date.toISOString().split("T")[0];
+          return iso;
+        });
 
-    const seriesData = days.map(date => activityMap[date] || 0);
+        const seriesData = days.map(date => activityMap[date] || 0);
 
-    setChartData({
-      options: {
-        chart: { id: "activity-chart" },
-        xaxis: { categories: days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })) }
-      },
-      series: [{ name: "New Users", data: seriesData }]
-    });
+        setChartData({
+          options: {
+            chart: { id: "activity-chart" },
+            xaxis: { categories: days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })) }
+          },
+          series: [{ name: "New Users", data: seriesData }]
+        });
 
-  } catch (err) {
-    console.error("Failed to fetch activity data", err);
-  }
-};
+      } catch (err) {
+        console.error("Failed to fetch activity data", err);
+        // Set default chart data on error
+        setChartData({
+          options: {
+            chart: { id: "activity-chart" },
+            xaxis: { categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }
+          },
+          series: [{ name: "New Users", data: [0, 0, 0, 0, 0, 0, 0] }]
+        });
+      }
+    };
 
-
-    
     fetchJobs();
     fetchStats();
     fetchApplications();
@@ -268,7 +298,6 @@ const handleBlockUser = async (userId) => {
                 <h2 className="text-2xl font-bold">{stats.users}</h2>
                 <p className="text-xs text-green-600 flex items-center">
                   <span className="material-symbols-outlined text-sm">trending_up</span>
-                  +5.3% this week
                 </p>
               </div>
             </div>
@@ -282,7 +311,6 @@ const handleBlockUser = async (userId) => {
                 <h2 className="text-2xl font-bold">{stats.jobs}</h2>
                 <p className="text-xs text-green-600 flex items-center">
                   <span className="material-symbols-outlined text-sm">trending_up</span>
-                  +12.7% this week
                 </p>
               </div>
             </div>
@@ -296,7 +324,6 @@ const handleBlockUser = async (userId) => {
                 <h2 className="text-2xl font-bold">{stats.applications}</h2>
                 <p className="text-xs text-red-600 flex items-center">
                   <span className="material-symbols-outlined text-sm">trending_down</span>
-                  -2.1% this week
                 </p>
               </div>
             </div>
@@ -313,7 +340,13 @@ const handleBlockUser = async (userId) => {
                 </select>
               </div>
               <div className="h-80 w-full">
-                <Chart options={chartData.options} series={chartData.series} type="bar" height={300} />
+                {chartData.series && chartData.series.length > 0 ? (
+                  <Chart options={chartData.options} series={chartData.series} type="area" height={300} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Loading chart data...
+                  </div>
+                )}
               </div>
             </div>
 
@@ -324,13 +357,19 @@ const handleBlockUser = async (userId) => {
               </div>
 
               <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className={`border-l-4 border-${activity.color}-500 pl-4 py-1`}>
-                    <p className="text-sm font-medium">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.description}</p>
-                    <p className="text-xs text-gray-400">{activity.time}</p>
+                {recentActivity && recentActivity.length > 0 ? (
+                  recentActivity.map((activity) => (
+                    <div key={activity.id} className={`border-l-4 border-${activity.color || 'blue'}-500 pl-4 py-1`}>
+                      <p className="text-sm font-medium">{activity.title}</p>
+                      <p className="text-xs text-gray-500">{activity.description}</p>
+                      <p className="text-xs text-gray-400">{activity.time}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    No recent activity
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -356,37 +395,44 @@ const handleBlockUser = async (userId) => {
                   <thead>
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                    
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentJobs.map((job) => (
-                      <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <p className="text-sm font-medium">{job.title}</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <p className="text-sm text-gray-700">{job.company}</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <p className="text-sm text-gray-700">{job.posted}</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(job.status)}`}>
-                            {job.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
-                          <button 
-                            onClick={() => handleDeleteJob(job.jobId)} className="text-red-600 hover:text-red-800">
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
+                    {recentJobs && recentJobs.length > 0 ? (
+                      recentJobs.map((job) => (
+                        <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <p className="text-sm font-medium">{job.title}</p>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <p className="text-sm text-gray-700">{job.postedAt}</p>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(job.status)}`}>
+                              {job.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
+                            <button 
+                              onClick={() => handleDeleteJob(job.jobId)} 
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                          No jobs found
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -419,39 +465,47 @@ const handleBlockUser = async (userId) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentApps.map((app) => (
-                      <tr key={app.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                              <span className="text-blue-600 text-sm font-bold">
-                                {app.firstName?.charAt(0)}{app.lastName?.charAt(0)}
-                              </span>
+                    {recentApps && recentApps.length > 0 ? (
+                      recentApps.map((app) => (
+                        <tr key={app.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <span className="text-blue-600 text-sm font-bold">
+                                  {app.firstName?.charAt(0) || 'U'}{app.lastName?.charAt(0) || 'U'}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium">{app.firstName || 'N/A'} {app.lastName || 'N/A'}</p>
                             </div>
-                            <p className="text-sm font-medium">{app.firstName} {app.lastName}</p>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <p className="text-sm text-gray-700">{app.jobTitle}</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <p className="text-sm text-gray-700">{app.appliedAt}</p>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(app.status)}`}>
-                            {app.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
-                          <button 
-                            onClick={() => handleDeleteApplication(app.id)}
-                            className="text-gray-500 hover:text-red-600 transition-colors"
-                          >
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <p className="text-sm text-gray-700">{app.jobTitle || 'N/A'}</p>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <p className="text-sm text-gray-700">{app.appliedAt || 'N/A'}</p>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(app.status)}`}>
+                              {app.status || 'Unknown'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
+                            <button 
+                              onClick={() => handleDeleteApplication(app.id)}
+                              className="text-gray-500 hover:text-red-600 transition-colors"
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                          No applications found
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -483,66 +537,74 @@ const handleBlockUser = async (userId) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.userId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                            <span className="text-blue-600 font-bold">
-                              {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                            </span>
+                  {users && users.length > 0 ? (
+                    users.map((user) => (
+                      <tr key={user.userId} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                              <span className="text-blue-600 font-bold">
+                                {user.firstName?.charAt(0) || 'U'}{user.lastName?.charAt(0) || 'U'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{user.firstName || 'N/A'} {user.lastName || 'N/A'}</p>
+                              <p className="text-xs text-gray-500">{user.role || 'N/A'}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
-                            <p className="text-xs text-gray-500">{user.role}</p>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{user.email || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
+                            {user.role || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(user.status)}`}>
+                            {user.status || 'Unknown'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <p className="text-sm text-gray-700">{user.joinedAt || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
+                          <div className="flex justify-end gap-2">
+                            <button 
+                              onClick={() => handleEditUser(user)}
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-gray-500">edit</span>
+                            </button>
+                            <button 
+                              onClick={() => handleBlockUser(user.userId)}
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-gray-500">block</span>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteUser(user.userId)}
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-red-500">delete</span>
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-700">{user.email}</p>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-700">{user.joinedAt}</p>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
-                        <div className="flex justify-end gap-2">
-                          <button 
-                            onClick={() => handleEditUser(user)}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-gray-500">edit</span>
-                          </button>
-                          <button 
-                            onClick={() => handleBlockUser(user.userId)}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-gray-500">block</span>
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteUser(user.userId)}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-red-500">delete</span>
-                          </button>
-                        </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                        No users found
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
 
-            <div className="mt-6 flex justify-between items-center">
+             <div className="mt-6 flex justify-between items-center">
               <p className="text-sm text-gray-500">Showing 1-{users.length} of {users.length} users</p>
               <div className="flex gap-2">
                 <button

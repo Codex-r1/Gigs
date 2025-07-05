@@ -8,9 +8,21 @@ router.post('/', authenticateToken, authorizeRoles("applicant"), async (req, res
   const { jobId, motivation } = req.body;
   const applicantId = req.user.id;
 
+  if (!jobId || !motivation) {
+    return res.status(400).json({ error: "Job ID and motivation are required." });
+  }
+
   try {
+    // Check if job exists and is open
+    const [[job]] = await pool.execute("SELECT * FROM Jobs WHERE jobId = ?", [jobId]);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    if (job.status === 'closed') {
+      return res.status(400).json({ message: "This job is already closed." });
+    }
+
     // Get job skillsRequired
-    const [[job]] = await pool.execute("SELECT skillsRequired FROM Jobs WHERE jobId = ?", [jobId]);
     const jobSkills = job.skillsRequired ? job.skillsRequired.split(",").map(s => s.trim().toLowerCase()) : [];
 
     // Get applicant profile skills
@@ -32,11 +44,8 @@ router.post('/', authenticateToken, authorizeRoles("applicant"), async (req, res
     console.error("Application error:", err);
     res.status(500).json({ error: "Failed to apply for job" });
   }
-if (job.status === 'closed') {
-  return res.status(400).json({ error: "This job is closed and no longer accepting applications." });
-}
-
 });
+
 
 // GET /api/applications
 router.get('/', authenticateToken, async (req, res) => {

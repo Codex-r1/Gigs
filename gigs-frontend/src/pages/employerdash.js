@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chart from "react-apexcharts";
 import "../styles/stylez.css";
+import axios from "axios";
 
 const EmployerDash = () => {
     const navigate = useNavigate();
@@ -24,6 +25,10 @@ const EmployerDash = () => {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
+     const [showEditModal, setShowEditModal] = useState(false);
+    const [jobToEdit, setJobToEdit] = useState(null);
+
+    const [updateMessage, setUpdateMessage] = useState("");
 
     // API helper function
     const apiCall = async (url, options = {}) => {
@@ -33,7 +38,78 @@ const EmployerDash = () => {
         };
         return fetch(url, defaultOptions);
     };
+     const fetchJobs = async () => {
+            try {
+                const res = await apiCall("http://localhost:5000/api/jobs");
+                const data = await res.json();
+                setJobs(data);
+            } catch (err) {
+                console.error("Error fetching employer jobs:", err);
+            }
+        };
+ // Delete job function - moved outside useEffect
+  const handleDeleteJob = async (jobId) => {
+    
+  const token = localStorage.getItem("token");
+  console.log("Deleting job", jobId, "with token", token);
 
+  try {
+    await axios.delete(`http://localhost:5000/api/jobs/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    alert("Job deleted successfully!");
+    fetchJobs(); // refresh the job list
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Failed to delete job");
+  }
+};
+
+
+    // Edit job function - moved outside useEffect
+    const handleEditClick = (job) => {
+  const normalizedJob = {
+    ...job,
+    id: job.jobId || job.id // normalize the ID key
+  };
+  console.log("Job selected for editing:", normalizedJob);
+  setJobToEdit(normalizedJob);
+  setShowEditModal(true);
+};
+
+
+    // Save edit function - moved outside useEffect
+    const handleSaveEdit = async () => {
+  try {
+    const res = await apiCall(`http://localhost:5000/api/jobs/${jobToEdit.jobId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(jobToEdit),
+    });
+
+    if (!res.ok) throw new Error("Failed to update job");
+
+    const updatedJob = await res.json();
+
+    setJobs((prev) =>
+      prev.map((j) => (j.jobId === updatedJob.jobId ? updatedJob : j)) // Fix ID field if needed
+    );
+
+    // ✅ Show confirmation message
+    setUpdateMessage("Job updated successfully!");
+    setTimeout(() => setUpdateMessage(""), 3000);
+
+    // ✅ Close modal and clear form
+    setShowEditModal(false);
+    setJobToEdit(null);
+  } catch (err) {
+    console.error("Error updating job:", err);
+    alert("Could not save job updates.");
+  }
+};
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -65,16 +141,6 @@ const EmployerDash = () => {
                 setApplicants(data);
             } catch (error) {
                 console.error("Error fetching applicants:", error);
-            }
-        };
-
-        const fetchJobs = async () => {
-            try {
-                const res = await apiCall("http://localhost:5000/api/jobs");
-                const data = await res.json();
-                setJobs(data);
-            } catch (err) {
-                console.error("Error fetching employer jobs:", err);
             }
         };
 
@@ -133,27 +199,6 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
             "default": { class: "bg-orange-100 text-orange-800", text: "New" }
         };
         return statusMap[status] || statusMap.default;
-    };
-
-    const closeJob = async (jobId) => {
-        if (!window.confirm("Are you sure you want to close this job?")) return;
-        try {
-            const res = await apiCall(`http://localhost:5000/api/jobs/${jobId}/close`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!res.ok) throw new Error("Failed to close job");
-            setJobs((prevJobs) => prevJobs.map(job =>
-                job.id === jobId ? { ...job, status: "closed" } : job
-            ));
-            alert("Job closed successfully");
-        } catch (error) {
-            console.error("Error closing job:", error);
-            alert("Failed to close job. Please try again.");
-        }
     };
         
     const filteredApplicants = applicants.filter(app => {
@@ -347,27 +392,50 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                                     Post a Job
                                 </button>
                             </div>
-
+{updateMessage && (
+  <div className="mb-4 p-3 bg-green-100 text-green-800 rounded shadow-sm">
+    {updateMessage}
+  </div>
+)}
                             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">My Jobs</h3>
                                 {jobs.length === 0 ? (
                                     <p className="text-gray-500">No jobs posted yet.</p>
                                 ) : (
                                     <ul className="space-y-4">
-                                        {jobs.map((job) => (
-                                            <li key={job.id} className="flex justify-between items-center border-b pb-2">
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-800">{job.title}</p>
-                                                    <p className="text-xs text-gray-500">Status: 
-                                                        <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                            job.status === "closed" ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                                                        }`}>
-                                                            {job.status}
-                                                        </span>
-                                                    </p>
-                                                </div>
-                                            </li>
-                                        ))}
+                                      {jobs.map((job) => (
+  <li key={job.id} className="flex justify-between items-center border-b pb-2">
+    <div>
+      <p className="text-sm font-medium text-gray-800">{job.title}</p>
+      <p className="text-xs text-gray-500">Status:
+        <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+          job.status === "closed"
+            ? "bg-red-100 text-red-600"
+            : "bg-green-100 text-green-600"
+        }`}>
+          {job.status}
+        </span>
+      </p>
+    </div>
+    <div className="flex space-x-2">
+      <button
+        onClick={() => handleEditClick(job)}
+        className="text-blue-600 hover:text-blue-800"
+        title="Edit Job"
+      >
+        <span className="material-symbols-outlined">edit</span>
+      </button>
+      <button
+        onClick={() => handleDeleteJob(job.jobId)}
+        className="text-red-600 hover:text-red-800"
+        title="Delete Job"
+      >
+        <span className="material-symbols-outlined">delete</span>
+      </button>
+    </div>
+  </li>
+))}
+
                                     </ul>
                                 )}
                             </div>
@@ -420,7 +488,6 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                                         <option>All Status</option>
                                         <option>New</option>
                                         <option>Pending</option>
-                                        <option>Interviewed</option>
                                         <option>Accepted</option>
                                         <option>Rejected</option>
                                     </select>
@@ -434,7 +501,7 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                                     <tr>
                                         <th className="text-left p-4 font-medium text-gray-700">Applicant</th>
                                         <th className="text-left p-4 font-medium text-gray-700">Job Position</th>
-                                        <th className="text-left p-4 font-medium text-gray-700">Applied Date</th>
+                                        <th className="text-left p-4 font-medium text-gray-700">Applied on</th>
                                         <th className="text-left p-4 font-medium text-gray-700">Status</th>
                                         <th className="text-left p-4 font-medium text-gray-700">Actions</th>
                                     </tr>
@@ -448,7 +515,7 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                                         </tr>
                                     ) : (
                                         filteredApplicants.map((app) => {
-                                            const realApplicantId = app.applicantId || app.userId || app.id;
+                                            const applicantId = app.applicantId || app.userId || app.id;
                                             const statusInfo = getStatusDisplay(app.status);
                                             
                                             return (
@@ -476,7 +543,7 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                                                     </td>
                                                     <td className="p-4 text-gray-700">{app.jobTitle}</td>
                                                     <td className="p-4 text-gray-500">
-                                                        {app.appliedDate ? new Date(app.appliedDate).toLocaleDateString() : 'N/A'}
+                                                        {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 'N/A'}
                                                     </td>
                                                     <td className="p-4">
                                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}>
@@ -646,6 +713,83 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
                         </div>
                     </div>
                 )}
+                {showEditModal && jobToEdit && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+    <div className="bg-white w-full max-w-lg rounded-xl p-6 shadow-xl relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl"
+        onClick={() => setShowEditModal(false)}
+      >
+        &times;
+      </button>
+      <h2 className="text-lg font-semibold mb-4">Edit Job Posting</h2>
+      <div className="space-y-4">
+        <input
+          type="text"
+          placeholder="Job Title"
+          className="w-full border rounded-lg p-2"
+          value={jobToEdit.title}
+          onChange={(e) =>
+            setJobToEdit({ ...jobToEdit, title: e.target.value })
+          }
+        />
+        <textarea
+          placeholder="Job Description"
+          className="w-full border rounded-lg p-2"
+          rows="4"
+          value={jobToEdit.description}
+          onChange={(e) =>
+            setJobToEdit({ ...jobToEdit, description: e.target.value })
+          }
+        />
+        <input
+          type="text"
+          placeholder="Location"
+          className="w-full border rounded-lg p-2"
+          value={jobToEdit.location}
+          onChange={(e) =>
+            setJobToEdit({ ...jobToEdit, location: e.target.value })
+          }
+        />
+        <input
+          type="text"
+          placeholder="Skills Required"
+          className="w-full border rounded-lg p-2"
+          value={jobToEdit.skillsRequired}
+          onChange={(e) =>
+            setJobToEdit({ ...jobToEdit, skillsRequired: e.target.value })
+          }
+        />
+        <select
+          className="w-full border rounded-lg p-2"
+          value={jobToEdit.status}
+          onChange={(e) =>
+            setJobToEdit({ ...jobToEdit, status: e.target.value })
+          }
+        >
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+
+      <div className="flex justify-end mt-6 space-x-3">
+        <button
+          onClick={() => setShowEditModal(false)}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveEdit}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
             </div>
         </div>
         
