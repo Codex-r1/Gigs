@@ -116,8 +116,8 @@ router.get("/admin/jobs", authenticateToken, authorizeRoles("admin"), async (req
     res.status(500).json({ error: "Failed to fetch jobs" });
   }
 });
-// DELETE /api/admin/jobs/:jobId
-router.delete("/jobs/:jobId", authenticateToken, authorizeRoles("admin"), async (req, res) => {
+// DELETE /api/admin/jobs/:jobId - Fixed route path
+router.delete("/admin/jobs/:jobId", authenticateToken, authorizeRoles("admin"), async (req, res) => {
   const { jobId } = req.params;
   try {
     const [result] = await pool.query("DELETE FROM jobs WHERE jobId = ?", [jobId]);
@@ -125,6 +125,19 @@ router.delete("/jobs/:jobId", authenticateToken, authorizeRoles("admin"), async 
     res.json({ message: "Job deleted successfully" });
   } catch (error) {
     console.error("Error deleting job:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// DELETE /api/admin/applications/:applicationId
+router.delete("/admin/applications/:applicationId", authenticateToken, authorizeRoles("admin"), async (req, res) => {
+  const { applicationId } = req.params;
+  try {
+    const [result] = await pool.query("DELETE FROM applications WHERE applicationId = ?", [applicationId]);
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Application not found" });
+    res.json({ message: "Application deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting application:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

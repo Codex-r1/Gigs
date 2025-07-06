@@ -192,7 +192,7 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
 
     const getStatusDisplay = (status) => {
         const statusMap = {
-            "pending": { class: "bg-yellow-100 text-yellow-800", text: "Under Review" },
+            "pending": { class: "bg-yellow-100 text-yellow-800", text: "Pending" },
             "accepted": { class: "bg-green-100 text-green-800", text: "Hired" },
             "rejected": { class: "bg-red-100 text-red-800", text: "Rejected" },
             "interviewed": { class: "bg-blue-100 text-blue-800", text: "Interviewed" },
@@ -651,7 +651,7 @@ const handleStatusUpdate = async (applicationId, status, reviewComment = "") => 
         <p><strong>Bio:</strong> {selectedApplicant.bio || "N/A"}</p>
         <p><strong>Skill Match:</strong> {selectedApplicant.skillMatchPercent || 0}%</p>
         <p><strong>Location:</strong> {selectedApplicant.location || "N/A"}</p>
-        <p><strong>Motivation:</strong> {selectedApplicant.motivationMessage || "No message provided"}</p>
+        <p><strong>Motivation:</strong> {selectedApplicant.motivation || "No message provided"}</p>
         <p><strong>Rating:</strong> {selectedApplicant.rating !== null ? `${selectedApplicant.rating}/5` : "Not rated yet"}</p>
 
 {selectedApplicant.feedback && (

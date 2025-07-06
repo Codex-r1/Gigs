@@ -12,8 +12,7 @@ const Jobs = () => {
   });
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicationData, setApplicationData] = useState({
-    reason: "",
-    experience: ""
+    reason: ""
   });
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -89,28 +88,40 @@ const Jobs = () => {
   };
 
   const applyToJob = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      setSubmitting(true);
-      await axios.post(
-        "http://localhost:5000/api/applications",
-        {
-          jobId: selectedJob.jobId,
-          motivation: applicationData.reason
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      alert("Application submitted successfully!");
-      closeApplicationModal();
-    } catch (err) {
+  const token = localStorage.getItem("token");
+
+  try {
+    setSubmitting(true);
+
+   await axios.post(
+  "http://localhost:5000/api/applications",
+  {
+    jobId: selectedJob.jobId,
+    motivation: applicationData.reason?.trim() || "",  
+  },
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
+
+    alert("Application submitted successfully!");
+    closeApplicationModal();
+
+  } catch (err) {
+    if (err.response?.status === 409) {
+      alert("You have already applied to this job.");
+    } else if (err.response?.status === 400) {
+      alert("Motivation must be at least 30 characters long.");
+    } else {
       console.error("Failed to apply:", err);
-      alert("Failed to apply");
-    } finally {
-      setSubmitting(false);
+      alert("Something went wrong. Please try again.");
     }
-  };
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const handleBookmark = async (jobId) => {
     const token = localStorage.getItem("token");
@@ -423,7 +434,7 @@ const Jobs = () => {
                           ) : (
                             <button
                               onClick={() => handleCloseJob(job.jobId)}
-                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                              className="px-1 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                             >
                               Close Job
                             </button>
@@ -456,7 +467,7 @@ const Jobs = () => {
                 <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="text-white text-2xl">💼</span>
+                      <span className="text-black text-2xl">💼</span>
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold text-white">{selectedJob.title}</h2>
@@ -478,6 +489,12 @@ const Jobs = () => {
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
                       placeholder="Tell us what motivates you to apply for this role. What excites you about this opportunity? How do your skills and experience align with this position?"
                     />
+                    {applicationData.reason.trim().length > 0 && applicationData.reason.trim().length < 30 && (
+  <p className="text-red-500 text-sm mt-1">
+    Motivation must be at least 30 characters long.
+  </p>
+)}
+
                   </div>
 
                   
@@ -485,8 +502,9 @@ const Jobs = () => {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={applyToJob}
-                      disabled={submitting || applicationData.reason.trim() === ""}
-                      className="flex-1 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      disabled={submitting || applicationData.reason.trim().length < 30}
+
+                      className="flex-1 bg-gradient-to-r from-indigo-500 to-indigo-600 text-black py-3 px-6 rounded-lg font-medium hover:from-indigo-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <span>📨</span>

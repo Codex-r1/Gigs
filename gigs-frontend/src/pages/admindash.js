@@ -8,12 +8,23 @@ const AdminDash = () => {
   const [users, setUsers] = useState([]);
   const [recentJobs, setRecentJobs] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
+  
+  // Search states
+  const [jobSearch, setJobSearch] = useState("");
+  const [applicationSearch, setApplicationSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  
+  // Filtered data states
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [filteredApps, setFilteredApps] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  
   const [chartData, setChartData] = useState({
     options: {
       chart: { id: "activity-chart" },
       xaxis: { categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }
     },
-    series: [{ name: "New Users", data: [1, 3, 2, 5, 4, 6, 1] }] // Initialize with default data
+    series: [{ name: "New Users", data: [1, 3, 2, 5, 4, 6, 1] }]
   });
 
   // Get token from localStorage (if available in environment)
@@ -26,6 +37,102 @@ const AdminDash = () => {
   };
 
   const token = getToken();
+
+  // Search filter functions
+  const filterJobs = (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setFilteredJobs(recentJobs);
+      return;
+    }
+    
+    const filtered = recentJobs.filter(job => 
+      job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.postedAt?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredJobs(filtered);
+  };
+
+  const filterApplications = (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setFilteredApps(recentApps);
+      return;
+    }
+    
+    const filtered = recentApps.filter(app => 
+      app.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${app.firstName} ${app.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredApps(filtered);
+  };
+
+  const filterUsers = (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setFilteredUsers(users);
+      return;
+    }
+    
+    const filtered = users.filter(user => 
+      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  };
+
+  // Search handlers
+  const handleJobSearch = (e) => {
+    const searchTerm = e.target.value;
+    setJobSearch(searchTerm);
+    filterJobs(searchTerm);
+  };
+
+  const handleApplicationSearch = (e) => {
+    const searchTerm = e.target.value;
+    setApplicationSearch(searchTerm);
+    filterApplications(searchTerm);
+  };
+
+  const handleUserSearch = (e) => {
+    const searchTerm = e.target.value;
+    setUserSearch(searchTerm);
+    filterUsers(searchTerm);
+  };
+
+  // Clear search functions
+  const clearJobSearch = () => {
+    setJobSearch("");
+    setFilteredJobs(recentJobs);
+  };
+
+  const clearApplicationSearch = () => {
+    setApplicationSearch("");
+    setFilteredApps(recentApps);
+  };
+
+  const clearUserSearch = () => {
+    setUserSearch("");
+    setFilteredUsers(users);
+  };
+
+  // Update filtered data when original data changes
+  useEffect(() => {
+    filterJobs(jobSearch);
+  }, [recentJobs, jobSearch]);
+
+  useEffect(() => {
+    filterApplications(applicationSearch);
+  }, [recentApps, applicationSearch]);
+
+  useEffect(() => {
+    filterUsers(userSearch);
+  }, [users, userSearch]);
 
   // DELETE user handler
   const handleDeleteUser = async (id) => {
@@ -82,7 +189,6 @@ const AdminDash = () => {
       });
       alert("Job deleted successfully.");
       
-      // Optional: refresh job list after delete
       fetchJobs();
 
     } catch (error) {
@@ -97,43 +203,28 @@ const AdminDash = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      // Ensure data is an array
       setRecentJobs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch jobs", err);
-      setRecentJobs([]); // Set empty array on error
+      setRecentJobs([]);
     }
   };
 
   const handleDeleteApplication = async (applicationId) => {
-    if (!window.confirm("Are you sure you want to delete this application?")) return;
+  if (!window.confirm("Are you sure you want to delete this application?")) return;
+  try {
+    await axios.delete(`http://localhost:5000/api/admin/applications/${applicationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    alert("Application deleted.");
+    // Fixed: Use applicationId instead of id
+    setRecentApps(recentApps.filter((app) => app.applicationId !== applicationId));
+  } catch (error) {
+    console.error("Error deleting application:", error);
+    alert("Failed to delete application.");
+  }
+};
 
-    try {
-      await axios.delete(`http://localhost:5000/api/admin/applications/${applicationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Application deleted.");
-      setRecentApps(recentApps.filter((app) => app.id !== applicationId));
-    } catch (error) {
-      console.error("Error deleting application:", error);
-      alert("Failed to delete application.");
-    }
-  };
-
-  const handleBlockUser = async (userId) => {
-    if (!window.confirm("Block this user?")) return;
-
-    try {
-      const res = await axios.put(`http://localhost:5000/api/admin/users/block/${userId}`, null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert(res.data.message || "User blocked.");
-      fetchUsers(); // refresh user list if needed
-    } catch (error) {
-      console.error("Error blocking user:", error);
-      alert("Failed to block user.");
-    }
-  };
 
   const fetchUsers = async () => {
     try {
@@ -141,11 +232,10 @@ const AdminDash = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      // Ensure data is an array
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch users", err);
-      setUsers([]); // Set empty array on error
+      setUsers([]);
     }
   };
 
@@ -159,7 +249,6 @@ const AdminDash = () => {
         setStats(data || { users: 0, jobs: 0, applications: 0 });
       } catch (err) {
         console.error("Failed to fetch stats", err);
-        // Use fallback data for demo
         setStats({ users: 1249, jobs: 523, applications: 2876 });
       }
     };
@@ -170,11 +259,10 @@ const AdminDash = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        // Ensure data is an array
         setRecentApps(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch applications", err);
-        setRecentApps([]); // Set empty array on error
+        setRecentApps([]);
       }
     };
 
@@ -184,12 +272,10 @@ const AdminDash = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-console.log("Fetched activity data:", data);
+        console.log("Fetched activity data:", data);
 
-        // Check if data exists and is an array
         if (!data || !Array.isArray(data)) {
           console.error("Invalid activity data:", data);
-          // Set default chart data
           setChartData({
             options: {
               chart: { id: "activity-chart" },
@@ -226,7 +312,6 @@ console.log("Fetched activity data:", data);
 
       } catch (err) {
         console.error("Failed to fetch activity data", err);
-        // Set default chart data on error
         setChartData({
           options: {
             chart: { id: "activity-chart" },
@@ -379,12 +464,27 @@ console.log("Fetched activity data:", data);
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">Recent Job Posts</h2>
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Search jobs..."
-                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                  <button className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search jobs..."
+                      value={jobSearch}
+                      onChange={handleJobSearch}
+                      className="px-3 py-1.5 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    {jobSearch && (
+                      <button
+                        onClick={clearJobSearch}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => filterJobs(jobSearch)}
+                    className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors"
+                  >
                     <span className="material-symbols-outlined">search</span>
                   </button>
                 </div>
@@ -395,15 +495,14 @@ console.log("Fetched activity data:", data);
                   <thead>
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
-                    
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentJobs && recentJobs.length > 0 ? (
-                      recentJobs.map((job) => (
+                    {filteredJobs && filteredJobs.length > 0 ? (
+                      filteredJobs.map((job) => (
                         <tr key={job.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3 whitespace-nowrap">
                             <p className="text-sm font-medium">{job.title}</p>
@@ -428,8 +527,8 @@ console.log("Fetched activity data:", data);
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                          No jobs found
+                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
+                          {jobSearch ? `No jobs found matching "${jobSearch}"` : "No jobs found"}
                         </td>
                       </tr>
                     )}
@@ -442,12 +541,27 @@ console.log("Fetched activity data:", data);
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">Recent Applications</h2>
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Search applications..."
-                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                  <button className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search applications..."
+                      value={applicationSearch}
+                      onChange={handleApplicationSearch}
+                      className="px-3 py-1.5 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    {applicationSearch && (
+                      <button
+                        onClick={clearApplicationSearch}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => filterApplications(applicationSearch)}
+                    className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors"
+                  >
                     <span className="material-symbols-outlined">search</span>
                   </button>
                 </div>
@@ -465,8 +579,8 @@ console.log("Fetched activity data:", data);
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentApps && recentApps.length > 0 ? (
-                      recentApps.map((app) => (
+                    {filteredApps && filteredApps.length > 0 ? (
+                      filteredApps.map((app) => (
                         <tr key={app.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center">
@@ -491,7 +605,7 @@ console.log("Fetched activity data:", data);
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                             <button 
-                              onClick={() => handleDeleteApplication(app.id)}
+                              onClick={() => handleDeleteApplication(app.applicationId)}
                               className="text-gray-500 hover:text-red-600 transition-colors"
                             >
                               <span className="material-symbols-outlined">delete</span>
@@ -502,7 +616,7 @@ console.log("Fetched activity data:", data);
                     ) : (
                       <tr>
                         <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                          No applications found
+                          {applicationSearch ? `No applications found matching "${applicationSearch}"` : "No applications found"}
                         </td>
                       </tr>
                     )}
@@ -516,11 +630,29 @@ console.log("Fetched activity data:", data);
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-gray-800">User Management</h2>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearch}
+                    onChange={handleUserSearch}
+                    className="px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  {userSearch && (
+                    <button
+                      onClick={clearUserSearch}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  )}
+                </div>
+                <button 
+                  onClick={() => filterUsers(userSearch)}
+                  className="p-2 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors"
+                >
+                  <span className="material-symbols-outlined">search</span>
+                </button>
               </div>
             </div>
 
@@ -534,7 +666,7 @@ console.log("Fetched activity data:", data);
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
+                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users && users.length > 0 ? (
@@ -576,12 +708,6 @@ console.log("Fetched activity data:", data);
                               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                             >
                               <span className="material-symbols-outlined text-gray-500">edit</span>
-                            </button>
-                            <button 
-                              onClick={() => handleBlockUser(user.userId)}
-                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-gray-500">block</span>
                             </button>
                             <button 
                               onClick={() => handleDeleteUser(user.userId)}

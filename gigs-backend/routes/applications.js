@@ -4,47 +4,34 @@ const pool = require('../config/database');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // POST /api/applications
-router.post('/', authenticateToken, authorizeRoles("applicant"), async (req, res) => {
+// POST /api/applications
+router.post('/', authenticateToken, authorizeRoles('applicant'), async (req, res) => {
   const { jobId, motivation } = req.body;
   const applicantId = req.user.id;
 
-  if (!jobId || !motivation) {
-    return res.status(400).json({ error: "Job ID and motivation are required." });
+  if (!jobId || !motivation || motivation.trim().length < 30) {
+    return res.status(400).json({ error: "All fields are required and motivation must be meaningful." });
   }
 
   try {
-    // Check if job exists and is open
-    const [[job]] = await pool.execute("SELECT * FROM Jobs WHERE jobId = ?", [jobId]);
-    if (!job) {
-      return res.status(404).json({ message: "Job not found" });
-    }
-    if (job.status === 'closed') {
-      return res.status(400).json({ message: "This job is already closed." });
-    }
-
-    // Get job skillsRequired
-    const jobSkills = job.skillsRequired ? job.skillsRequired.split(",").map(s => s.trim().toLowerCase()) : [];
-
-    // Get applicant profile skills
-    const [[profile]] = await pool.execute("SELECT skills FROM Profiles WHERE userId = ?", [applicantId]);
-    const applicantSkills = profile?.skills ? profile.skills.split(",").map(s => s.trim().toLowerCase()) : [];
-
-    // Calculate match %
-    const matchedSkills = applicantSkills.filter(skill => jobSkills.includes(skill));
-    const matchPercent = jobSkills.length ? Math.round((matchedSkills.length / jobSkills.length) * 100) : 0;
-
-    // Insert application
-    await pool.execute(`
-      INSERT INTO Applications (jobId, applicantId, motivation, matchPercent, status, appliedAt)
-      VALUES (?, ?, ?, ?, 'pending', NOW())
-    `, [jobId, applicantId, motivation, matchPercent]);
-
-    res.status(201).json({ message: "Application submitted", matchPercent });
+    await pool.query(
+      `INSERT INTO applications (applicantId, jobId, motivation, status) VALUES (?, ?, ?, 'pending')`,
+      [applicantId, jobId, motivation]
+    );
+    res.status(201).json({ message: "Application submitted successfully." });
   } catch (err) {
-    console.error("Application error:", err);
-    res.status(500).json({ error: "Failed to apply for job" });
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: "You have already applied to this job." });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Internal server error." });
   }
+  if (!motivation || motivation.trim().length < 30) {
+  return res.status(400).json({ error: "Motivation must be at least 30 characters long." });
+}
+
 });
+
 
 
 // GET /api/applications
